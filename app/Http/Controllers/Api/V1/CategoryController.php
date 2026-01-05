@@ -20,8 +20,16 @@ class CategoryController extends BaseController
 
         $categories = $this->loadRelationships($categories, $request);
 
-        return new CategoryCollection($categories);
+        return $this->sendResponse(new CategoryCollection($categories), "Categories retrieved successfully.");
     }
+
+    public function show(Request $request, Category $category)
+    {
+        $category = $this->loadRelationships($category, $request);
+
+        return $this->sendResponse(new CategoryResource($category), "Category retrieved successfully.");
+    }
+
 
     public function store(CategoryStoreRequest $request)
     {
@@ -30,10 +38,6 @@ class CategoryController extends BaseController
         return new CategoryResource($category);
     }
 
-    public function show(Request $request, Category $category)
-    {
-        return new CategoryResource($category);
-    }
 
     public function update(CategoryUpdateRequest $request, Category $category)
     {

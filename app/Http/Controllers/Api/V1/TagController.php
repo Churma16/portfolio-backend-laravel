@@ -2,33 +2,37 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\TagStoreRequest;
-use App\Http\Requests\Api\V1\TagUpdateRequest;
-use App\Http\Resources\Api\V1\TagCollection;
-use App\Http\Resources\Api\V1\TagResource;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\TagResource;
+use App\Http\Resources\Api\V1\TagCollection;
+use App\Http\Requests\Api\V1\TagStoreRequest;
+use App\Http\Requests\Api\V1\TagUpdateRequest;
+use App\Http\Controllers\Api\V1\BaseController;
 
-class TagController extends Controller
+class TagController extends BaseController
 {
     public function index(Request $request)
     {
         $tags = Tag::all();
+        $tags = $this->loadRelationships($tags, $request);
 
-        return new TagCollection($tags);
+        return $this->sendResponse(new TagCollection($tags), "Tags retrieved successfully.");
+    }
+
+    public function show(Request $request, Tag $tag)
+    {
+        $tag = $this->loadRelationships($tag, $request);
+
+        return $this->sendResponse(new TagResource($tag), "Tag retrieved successfully.");
     }
 
     public function store(TagStoreRequest $request)
     {
         $tag = Tag::create($request->validated());
 
-        return new TagResource($tag);
-    }
-
-    public function show(Request $request, Tag $tag)
-    {
         return new TagResource($tag);
     }
 

@@ -2,23 +2,33 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\WorkExperienceStoreRequest;
-use App\Http\Requests\Api\V1\WorkExperienceUpdateRequest;
-use App\Http\Resources\Api\V1\WorkExperienceCollection;
-use App\Http\Resources\Api\V1\WorkExperienceResource;
-use App\Models\WorkExperience;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use App\Models\WorkExperience;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\V1\BaseController;
+use App\Http\Resources\Api\V1\WorkExperienceResource;
+use App\Http\Resources\Api\V1\WorkExperienceCollection;
+use App\Http\Requests\Api\V1\WorkExperienceStoreRequest;
+use App\Http\Requests\Api\V1\WorkExperienceUpdateRequest;
 
-class WorkExperienceController extends Controller
+class WorkExperienceController extends BaseController
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $workExperiences = WorkExperience::all();
 
-        
-        return new WorkExperienceCollection($workExperiences);
+        $workExperiences = $this->loadRelationships($workExperiences, $request);
+
+        return $this->sendResponse(new WorkExperienceCollection($workExperiences), "Work Experiences retrieved successfully.");
+    }
+
+    public function show(Request $request, WorkExperience $workExperience) : JsonResponse
+    {
+        $workExperience = $this->loadRelationships($workExperience, $request);
+
+        return $this->sendResponse(new WorkExperienceResource($workExperience), "Work Experience retrieved successfully.");
     }
 
     public function store(WorkExperienceStoreRequest $request)
@@ -28,10 +38,6 @@ class WorkExperienceController extends Controller
         return new WorkExperienceResource($workExperience);
     }
 
-    public function show(Request $request, WorkExperience $workExperience)
-    {
-        return new WorkExperienceResource($workExperience);
-    }
 
     public function update(WorkExperienceUpdateRequest $request, WorkExperience $workExperience)
     {
