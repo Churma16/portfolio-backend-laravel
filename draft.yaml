@@ -1,0 +1,67 @@
+models:
+  Profile:
+    name: string:200
+    headline: string:255 nullable
+    bio: text nullable
+    avatar: string:500 nullable
+    cv_files: string:500 nullable
+    socials: json nullable
+
+  TechStack:
+    name: string:100,
+    slug: string:100 unique
+    icon: string:255 nullable
+    category_id: unsignedBigInteger nullable
+    relationships:
+      belongsTo: Category
+      belongsToMany: Project
+
+  Category:
+    name: string:100
+    slug: string:100 unique
+    relationships:
+      hasMany: TechStack, Tag
+
+
+  Project:
+    title: string:200
+    slug: string:200 unique
+    thumbnail: string:500 nullable
+    content: text nullable
+    demo_url: string:500 nullable
+    repo_url: string:500 nullable
+    is_featured: boolean default:false
+    published_at: timestamp nullable
+    relationships:
+      belongsToMany: TechStack, Tag
+
+  Tag:
+    name: string:100
+    slug: string:100 unique
+    color: string:10 nullable default: 'gray'
+    relationships:
+      belongsToMany: Project, WorkExperience
+
+  WorkExperience:
+    company: string:200
+    position: string:200
+    location: string:200 nullable
+    start_date: date
+    end_date: date nullable
+    is_current: boolean default:false
+    description: text nullable
+    relationships:
+      belongsToMany: TechStack, Tag
+
+controllers:
+  Api/V1/ProfilesController:
+    actions: [index, show, store, update, destroy]
+  Api/V1/ProjectsController:
+    actions: [index, show, store, update, destroy]
+  Api/V1/TechStacksController:
+    actions: [index, show, store, update, destroy]
+  Api/V1/TagsController:
+    actions: [index, show, store, update, destroy]
+  Api/V1/WorkExperiencesController:
+    actions: [index, show, store, update, destroy]
+
