@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Http\Request;
 
 class BaseController extends Controller
 {
+    use ApiResponseTrait;
     protected function loadRelationships($data, Request $request)
     {
         if ($request->has('with') && $request->filled('with')) {
@@ -18,27 +20,4 @@ class BaseController extends Controller
         return $data;
     }
 
-    public function sendResponse($result, $message = 'Success')
-    {
-        return response()->json([
-            'meta' => [
-                'code' => 200,
-                'status' => 'success',
-                'message' => $message,
-            ],
-            'data' => $result,
-        ]);
-    }
-
-    public function sendError($error, $code = 404)
-    {
-        return response()->json([
-            'meta' => [
-                'code' => $code,
-                'status' => 'error',
-                'message' => $error,
-            ],
-            'data' => null,
-        ], $code);
-    }
 }
