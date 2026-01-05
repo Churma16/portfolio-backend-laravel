@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Database\Eloquent\RelationNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -25,8 +26,24 @@ return Application::configure(basePath: dirname(__DIR__))
                         'status' => 'error',
                         'message' => 'Resource not found (Record does not exist)',
                     ],
-                    'data' => null,
+                    'data' => [
+                        'details' => $e->getMessage()
+                    ],
                 ], 404);
+            }
+        });
+        $exceptions->render(function (RelationNotFoundException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'meta' => [
+                        'code' => 400,
+                        'status' => 'error',
+                        'message' => 'The requested relationship does not exist.',
+                    ],
+                    'data' => [
+                        'details' => $e->getMessage()
+                    ],
+                ], 400);
             }
         });
     })->create();
