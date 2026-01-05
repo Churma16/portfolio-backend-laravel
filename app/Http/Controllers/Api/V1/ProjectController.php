@@ -17,6 +17,7 @@ class ProjectController extends BaseController
     public function index(Request $request)
     {
         $projects = Project::all();
+
         $projects = $this->loadRelationships($projects, $request);
 
         return $this->sendResponse(new ProjectCollection($projects), "Projects retrieved successfully.");

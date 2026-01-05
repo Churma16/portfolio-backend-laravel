@@ -23,7 +23,7 @@ class ProjectResource extends JsonResource
             'is_featured' => $this->is_featured,
             'published_at' => $this->published_at,
             'tags' => TagCollection::make($this->whenLoaded('tags')),
-            'tech_stack' => TechStackCollection::make($this->whenLoaded('techStack')),
+            'tech_stack' => TechStackCollection::make($this->whenLoaded('techStacks')),
         ];
     }
 }
