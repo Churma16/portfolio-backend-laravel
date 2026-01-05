@@ -7,6 +7,12 @@ models:
     cv_files: string:500 nullable
     socials: json nullable
 
+  Category:
+    name: string:100
+    slug: string:100 unique
+    relationships:
+      hasMany: TechStack, Tag
+
   TechStack:
     name: string:100,
     slug: string:100 unique
@@ -16,12 +22,14 @@ models:
       belongsTo: Category
       belongsToMany: Project
 
-  Category:
+  Tag:
     name: string:100
     slug: string:100 unique
+    color: string:10 nullable default: #c1c1c1
+    category_id: unsignedBigInteger nullable
     relationships:
-      hasMany: TechStack, Tag
-
+      belongsTo: Category
+      belongsToMany: Project, WorkExperience
 
   Project:
     title: string:200
@@ -35,13 +43,6 @@ models:
     relationships:
       belongsToMany: TechStack, Tag
 
-  Tag:
-    name: string:100
-    slug: string:100 unique
-    color: string:10 nullable default: 'gray'
-    relationships:
-      belongsToMany: Project, WorkExperience
-
   WorkExperience:
     company: string:200
     position: string:200
@@ -53,15 +54,27 @@ models:
     relationships:
       belongsToMany: TechStack, Tag
 
+resources:
+  Profile: all
+  Project: all
+  TechStack: all
+  Tag: all
+  Category: all
+  WorkExperience: all
+
+seeders: Profile, Category, TechStack, Project, Tag, WorkExperience
+
 controllers:
-  Api/V1/ProfilesController:
-    actions: [index, show, store, update, destroy]
-  Api/V1/ProjectsController:
-    actions: [index, show, store, update, destroy]
-  Api/V1/TechStacksController:
-    actions: [index, show, store, update, destroy]
-  Api/V1/TagsController:
-    actions: [index, show, store, update, destroy]
-  Api/V1/WorkExperiencesController:
-    actions: [index, show, store, update, destroy]
+  Api/V1/Profile:
+    resource: api
+  Api/V1/Project:
+    resource: api
+  Api/V1/TechStack:
+    resource: api
+  Api/V1/Tag:
+    resource: api
+  Api/V1/WorkExperience:
+    resource: api
+  Api/V1/Category:
+    resource: api
 

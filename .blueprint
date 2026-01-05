@@ -1,2 +1,75 @@
+created:
+    - app/Http/Controllers/Api/V1/ProfileController.php
+    - app/Http/Controllers/Api/V1/ProjectController.php
+    - app/Http/Controllers/Api/V1/TechStackController.php
+    - app/Http/Controllers/Api/V1/TagController.php
+    - app/Http/Controllers/Api/V1/WorkExperienceController.php
+    - app/Http/Controllers/Api/V1/CategoryController.php
+    - database/factories/ProfileFactory.php
+    - database/factories/CategoryFactory.php
+    - database/factories/TechStackFactory.php
+    - database/factories/TagFactory.php
+    - database/factories/ProjectFactory.php
+    - database/factories/WorkExperienceFactory.php
+    - database/migrations/2026_01_05_104835_create_profiles_table.php
+    - database/migrations/2026_01_05_104836_create_categories_table.php
+    - database/migrations/2026_01_05_104837_create_tech_stacks_table.php
+    - database/migrations/2026_01_05_104838_create_tags_table.php
+    - database/migrations/2026_01_05_104839_create_projects_table.php
+    - database/migrations/2026_01_05_104840_create_work_experiences_table.php
+    - database/migrations/2026_01_05_104841_create_project_tech_stack_table.php
+    - database/migrations/2026_01_05_104842_create_project_tag_table.php
+    - database/migrations/2026_01_05_104843_create_tag_work_experience_table.php
+    - database/migrations/2026_01_05_104844_create_tech_stack_work_experience_table.php
+    - app/Models/Profile.php
+    - app/Models/Category.php
+    - app/Models/TechStack.php
+    - app/Models/Tag.php
+    - app/Models/Project.php
+    - app/Models/WorkExperience.php
+    - database/seeders/ProfileSeeder.php
+    - database/seeders/CategorySeeder.php
+    - database/seeders/TechStackSeeder.php
+    - database/seeders/ProjectSeeder.php
+    - database/seeders/TagSeeder.php
+    - database/seeders/WorkExperienceSeeder.php
+    - tests/Feature/Http/Controllers/Api/V1/ProfileControllerTest.php
+    - tests/Feature/Http/Controllers/Api/V1/ProjectControllerTest.php
+    - tests/Feature/Http/Controllers/Api/V1/TechStackControllerTest.php
+    - tests/Feature/Http/Controllers/Api/V1/TagControllerTest.php
+    - tests/Feature/Http/Controllers/Api/V1/WorkExperienceControllerTest.php
+    - tests/Feature/Http/Controllers/Api/V1/CategoryControllerTest.php
+    - app/Http/Requests/Api\V1/ProfileStoreRequest.php
+    - app/Http/Requests/Api\V1/ProfileUpdateRequest.php
+    - app/Http/Requests/Api\V1/ProjectStoreRequest.php
+    - app/Http/Requests/Api\V1/ProjectUpdateRequest.php
+    - app/Http/Requests/Api\V1/TechStackStoreRequest.php
+    - app/Http/Requests/Api\V1/TechStackUpdateRequest.php
+    - app/Http/Requests/Api\V1/TagStoreRequest.php
+    - app/Http/Requests/Api\V1/TagUpdateRequest.php
+    - app/Http/Requests/Api\V1/WorkExperienceStoreRequest.php
+    - app/Http/Requests/Api\V1/WorkExperienceUpdateRequest.php
+    - app/Http/Requests/Api\V1/CategoryStoreRequest.php
+    - app/Http/Requests/Api\V1/CategoryUpdateRequest.php
+    - app/Http/Resources/Api\V1/ProfileCollection.php
+    - app/Http/Resources/Api\V1/ProfileResource.php
+    - app/Http/Resources/Api\V1/ProjectCollection.php
+    - app/Http/Resources/Api\V1/ProjectResource.php
+    - app/Http/Resources/Api\V1/TechStackCollection.php
+    - app/Http/Resources/Api\V1/TechStackResource.php
+    - app/Http/Resources/Api\V1/TagCollection.php
+    - app/Http/Resources/Api\V1/TagResource.php
+    - app/Http/Resources/Api\V1/WorkExperienceCollection.php
+    - app/Http/Resources/Api\V1/WorkExperienceResource.php
+    - app/Http/Resources/Api\V1/CategoryCollection.php
+    - app/Http/Resources/Api\V1/CategoryResource.php
+updated:
+    - routes/api.php
 models:
     User: {  }
+    Profile: { name: 'string:200', headline: 'string:255 nullable', bio: 'text nullable', avatar: 'string:500 nullable', cv_files: 'string:500 nullable', socials: 'json nullable' }
+    Category: { name: 'string:100', slug: 'string:100 unique', relationships: { hasMany: 'TechStack, Tag' } }
+    TechStack: { name: 'string:100,', slug: 'string:100 unique', icon: 'string:255 nullable', category_id: 'unsignedBigInteger nullable', relationships: { belongsTo: Category, belongsToMany: Project } }
+    Tag: { name: 'string:100', slug: 'string:100 unique', color: 'string:10 nullable default:', category_id: 'unsignedBigInteger nullable', relationships: { belongsTo: Category, belongsToMany: 'Project, WorkExperience' } }
+    Project: { title: 'string:200', slug: 'string:200 unique', thumbnail: 'string:500 nullable', content: 'text nullable', demo_url: 'string:500 nullable', repo_url: 'string:500 nullable', is_featured: 'boolean default:false', published_at: 'timestamp nullable', relationships: { belongsToMany: 'TechStack, Tag' } }
+    WorkExperience: { company: 'string:200', position: 'string:200', location: 'string:200 nullable', start_date: date, end_date: 'date nullable', is_current: 'boolean default:false', description: 'text nullable', relationships: { belongsToMany: 'TechStack, Tag' } }
