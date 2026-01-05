@@ -2,19 +2,29 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ProjectController;
+use App\Http\Controllers\Api\V1\TechStackController;
+use App\Http\Controllers\Api\V1\TagController;
+use App\Http\Controllers\Api\V1\WorkExperienceController;
+use App\Http\Controllers\Api\V1\CategoryController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::apiResource('profiles', App\Http\Controllers\Api\V1\ProfileController::class);
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::apiResource('projects', App\Http\Controllers\Api\V1\ProjectController::class);
+Route::apiResource('profiles', ProfileController::class)->middleware('auth:sanctum');
 
-Route::apiResource('tech-stacks', App\Http\Controllers\Api\V1\TechStackController::class);
+Route::apiResource('projects', ProjectController::class)->middleware('auth:sanctum');
 
-Route::apiResource('tags', App\Http\Controllers\Api\V1\TagController::class);
+Route::apiResource('tech-stacks', TechStackController::class)->middleware('auth:sanctum');
+Route::apiResource('tags', TagController::class)->middleware('auth:sanctum');
 
-Route::apiResource('work-experiences', App\Http\Controllers\Api\V1\WorkExperienceController::class);
+Route::apiResource('work-experiences', WorkExperienceController::class)->middleware('auth:sanctum');
 
-Route::apiResource('categories', App\Http\Controllers\Api\V1\CategoryController::class);
+Route::apiResource('categories', CategoryController::class)->middleware('auth:sanctum');
+
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
