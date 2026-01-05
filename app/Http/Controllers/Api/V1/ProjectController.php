@@ -34,14 +34,14 @@ class ProjectController extends BaseController
     {
         $project = Project::create($request->validated());
 
-        return new ProjectResource($project);
+        return $this->sendResponse(new ProjectResource($project), "Project created successfully.");
     }
 
     public function update(ProjectUpdateRequest $request, Project $project)
     {
         $project->update($request->validated());
 
-        return new ProjectResource($project);
+        return $this->sendResponse(new ProjectResource($project), "Project updated successfully.");
     }
 
     public function destroy(Request $request, Project $project)
