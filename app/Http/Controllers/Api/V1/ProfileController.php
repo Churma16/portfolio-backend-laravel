@@ -16,9 +16,9 @@ class ProfileController extends BaseController
 {
     public function index(Request $request)
     {
-        $profiles = Profile::all();
+        $profiles = Profile::first();
 
-        return new ProfileCollection($profiles);
+        return new ProfileResource($profiles);
     }
 
     public function show(Request $request, Profile $profile)
