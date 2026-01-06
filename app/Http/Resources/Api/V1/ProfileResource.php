@@ -16,9 +16,14 @@ class ProfileResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'headline' => $this->headline,
-            'bio' => $this->bio,
+            'role' => $this->role,
+            'bio_short' => $this->bio_short,
+            'bio_long' => $this->bio_long,
+            'location' => $this->location,
+            'is_hireable' => $this->is_hireable,
             'avatar' => $this->avatar,
             'cv_files' => $this->cv_files,
+            'hero_image_codes' => $this->hero_image_codes,
             'socials' => $this->socials,
         ];
     }
