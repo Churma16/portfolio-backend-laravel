@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+
 use App\Models\TechStack;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
@@ -32,17 +34,30 @@ class TechStackController extends BaseController
 
     public function store(TechStackStoreRequest $request)
     {
-        $techStack = TechStack::create($request->validated());
+        // $data = $request->validate(['name' => 'required', 'icon_name' => 'nullable']);
+        $request->merge(['slug' => Str::slug($request->name)]);
+        // $request->merge(['icon' => $request->icon_url ?? null]);
+        // $request->remove('icon_url');
+        // return response()->json(['message' => $request->all()]);
+        $techStack = TechStack::create($request->all());
 
-        return new TechStackResource($techStack);
+        return $this->sendResponse(new TechStackResource($techStack), "TechStack created successfully.");
+
+        // $data = $request->validate(['name' => 'required', 'icon_name' => 'nullable']);
+        // TechStack::create($data);
+        // return response()->json(['message' => 'Saved']);
     }
 
 
     public function update(TechStackUpdateRequest $request, TechStack $techStack)
     {
+        // return response()->json(['message' => $request->all()]);
+
+        $request->merge(['slug' => Str::slug($request->name)]);
+
         $techStack->update($request->validated());
 
-        return new TechStackResource($techStack);
+        return $this->sendResponse(new TechStackResource($techStack), "TechStack updated successfully.");
     }
 
     public function destroy(Request $request, TechStack $techStack)
