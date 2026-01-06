@@ -38,11 +38,21 @@ class ProjectController extends BaseController
         return $this->sendResponse(new ProjectResource($project), "Project created successfully.");
     }
 
-    public function update(ProjectUpdateRequest $request, Project $project)
+    public function update(Request $request, Project $project)
     {
-        $project->update($request->validated());
+        // Update data dasar
+        $project->update($request->only(['title', 'content', 'thumbnail', 'repo_url', 'demo_url']));
 
-        return $this->sendResponse(new ProjectResource($project), "Project updated successfully.");
+        // Update Hubungan (Sync akan otomatis hapus yang tidak dipilih & tambah yang baru)
+        if ($request->has('tech_stack_ids')) {
+            $project->techStacks()->sync($request->tech_stack_ids);
+        }
+
+        if ($request->has('tag_ids')) {
+            $project->tags()->sync($request->tag_ids);
+        }
+
+        return response()->json(['message' => 'Updated']);
     }
 
     public function destroy(Request $request, Project $project)
