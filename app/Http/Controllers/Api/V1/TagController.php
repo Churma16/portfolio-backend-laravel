@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Tag;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
@@ -31,13 +32,17 @@ class TagController extends BaseController
 
     public function store(TagStoreRequest $request)
     {
-        $tag = Tag::create($request->validated());
+
+        $request->merge(['slug' => Str::slug($request->name)]);
+        // return response()->json(['message' => $request->all()]);
+        $tag = Tag::create($request->all());
 
         return new TagResource($tag);
     }
 
     public function update(TagUpdateRequest $request, Tag $tag)
     {
+        $request->merge(['slug' => Str::slug($request->name)]);
         $tag->update($request->validated());
 
         return new TagResource($tag);
