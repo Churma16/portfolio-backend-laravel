@@ -21,7 +21,7 @@ class TechStackStoreRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'slug' => ['required', 'string', 'max:100', 'unique:tech_stacks,slug'],
+            // 'slug' => ['required', 'string', 'max:100', 'unique:tech_stacks,slug'],
             'icon' => ['nullable', 'string', 'max:255'],
             'category_id' => ['nullable', 'integer', 'exists:Categories,id'],
         ];

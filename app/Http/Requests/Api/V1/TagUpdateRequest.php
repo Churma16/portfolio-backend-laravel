@@ -21,7 +21,7 @@ class TagUpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'slug' => ['required', 'string', 'max:100', 'unique:tags,slug'],
+            // 'slug' => ['required', 'string', 'max:100', 'unique:tags,slug'],
             'color' => ['nullable', 'string', 'max:10'],
             'category_id' => ['nullable', 'integer', 'exists:Categories,id'],
         ];
