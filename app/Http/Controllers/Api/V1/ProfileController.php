@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Profile;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Resources\Api\V1\ProfileResource;
-use App\Http\Controllers\Api\V1\BaseController;
-use App\Http\Resources\Api\V1\ProfileCollection;
 use App\Http\Requests\Api\V1\ProfileStoreRequest;
 use App\Http\Requests\Api\V1\ProfileUpdateRequest;
+use App\Http\Resources\Api\V1\ProfileResource;
+use App\Models\Profile;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends BaseController
 {
@@ -38,15 +34,6 @@ class ProfileController extends BaseController
     public function show(Request $request, Profile $profile)
     {
         // Tetap menggunakan resource untuk konsistensi jika show dipanggil dengan ID
-        return new ProfileResource($profile);
-    }
-
-    public function store(ProfileStoreRequest $request)
-    {
-        $profile = Profile::create($request->validated());
-
-        $this->clearCache(self::CACHE_KEY, '');
-
         return new ProfileResource($profile);
     }
 
@@ -83,6 +70,15 @@ class ProfileController extends BaseController
         $this->clearCache(self::CACHE_KEY, '');
 
         return $this->sendResponse(new ProfileResource($profile), "Profile updated successfully.");
+    }
+
+    public function store(ProfileStoreRequest $request)
+    {
+        $profile = Profile::create($request->validated());
+
+        $this->clearCache(self::CACHE_KEY, '');
+
+        return new ProfileResource($profile);
     }
 
     public function destroy(Request $request, Profile $profile)
