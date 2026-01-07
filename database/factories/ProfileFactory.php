@@ -15,7 +15,7 @@ class ProfileFactory extends Factory
             'name' => fake()->name(),
             'headline' => fake()->regexify('[A-Za-z0-9]{255}'),
             'bio_short' => fake()->text(),
-            'bio_short' => fake()->text(),
+            'bio_long' => fake()->text(),
             'avatar' => fake()->regexify('[A-Za-z0-9]{500}'),
             'cv_files' => fake()->regexify('[A-Za-z0-9]{500}'),
             'socials' => [
