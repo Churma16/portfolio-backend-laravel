@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache; // <--- PENTING: Import Facade Cache
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Api\V1\ProjectResource;
 use App\Http\Controllers\Api\V1\BaseController;
@@ -17,31 +17,36 @@ use App\Http\Requests\Api\V1\ProjectUpdateRequest;
 
 class ProjectController extends BaseController
 {
-    // Kunci Cache untuk daftar semua project
     private const CACHE_KEY_ALL = 'projects_all';
 
     public function index(Request $request)
     {
-        // CACHE READ: Cek apakah data ada di Redis?
-        // Jika ada, ambil dari Redis. Jika tidak, jalankan function, simpan ke Redis (selama 60 menit/3600 detik), lalu return.
+        // CACHE: Simpan hasil 'resolve' (Array Murni) ke Redis
         $projects = Cache::remember(self::CACHE_KEY_ALL, 3600, function () use ($request) {
-            $projects = Project::orderBy('column_order')->get();
-            return $this->loadRelationships($projects, $request);
+            $data = Project::orderBy('column_order')->get();
+            $data = $this->loadRelationships($data, $request);
+
+            // OPTIMASI: Ubah Resource menjadi Array sebelum disimpan
+            return ProjectResource::collection($data)->resolve();
         });
 
-        return $this->sendResponse(new ProjectCollection($projects), "Projects retrieved successfully.");
+        // Karena $projects sudah berupa array (bukan Object Eloquent lagi),
+        // Kita langsung kirim ke sendResponse.
+        return $this->sendResponse($projects, "Projects retrieved successfully.");
     }
 
     public function show(Request $request, Project $project)
     {
-        // CACHE READ: Cache spesifik per ID project (misal: 'project_1')
         $cacheKey = 'project_' . $project->id;
 
         $projectData = Cache::remember($cacheKey, 3600, function () use ($project, $request) {
-            return $this->loadRelationships($project, $request);
+            $project = $this->loadRelationships($project, $request);
+
+            // OPTIMASI: Ubah Resource menjadi Array sebelum disimpan
+            return (new ProjectResource($project))->resolve();
         });
 
-        return $this->sendResponse(new ProjectResource($projectData), "Project retrieved successfully.");
+        return $this->sendResponse($projectData, "Project retrieved successfully.");
     }
 
     public function store(ProjectStoreRequest $request)
@@ -57,7 +62,7 @@ class ProjectController extends BaseController
 
         $project = Project::create($data);
 
-        // HAPUS CACHE karena ada data baru
+        // Hapus Cache agar index terupdate
         $this->clearProjectCache();
 
         return $this->sendResponse(new ProjectResource($project), "Project created successfully.");
@@ -97,7 +102,7 @@ class ProjectController extends BaseController
             $project->tags()->sync($tagIds);
         }
 
-        // HAPUS CACHE Global & Spesifik ID ini agar data terupdate
+        // Hapus Cache Global & Spesifik ID
         $this->clearProjectCache($project->id);
 
         return $this->sendResponse(new ProjectResource($project), "Project updated successfully.");
@@ -114,7 +119,7 @@ class ProjectController extends BaseController
 
         $project->delete();
 
-        // HAPUS CACHE
+        // Hapus Cache
         $this->clearProjectCache($project->id);
 
         return response()->noContent();
@@ -160,25 +165,21 @@ class ProjectController extends BaseController
             return $this->sendError("Invalid direction value. Use 'up' or 'down'.", [], Response::HTTP_BAD_REQUEST);
         }
 
-        // Jika urutan berubah, HAPUS CACHE Global
         if ($isUpdated) {
-            $this->clearProjectCache(); // Cukup clear list utama karena urutan berubah
+            // Cukup clear list utama karena urutan berubah
+            $this->clearProjectCache();
         }
 
-        // Return success response (opsional, karena method reorder biasanya void/json status)
         return $this->sendResponse([], "Project reordered successfully.");
     }
 
     /**
-     * Helper function untuk menghapus cache
-     * Dipanggil saat create, update, delete, atau reorder
+     * Helper: Clear Cache
      */
     private function clearProjectCache($projectId = null)
     {
-        // 1. Hapus cache list utama (index)
         Cache::forget(self::CACHE_KEY_ALL);
 
-        // 2. Hapus cache detail project spesifik (show) jika ID diberikan
         if ($projectId) {
             Cache::forget('project_' . $projectId);
         }
