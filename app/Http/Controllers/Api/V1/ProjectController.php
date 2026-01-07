@@ -17,32 +17,28 @@ use App\Http\Requests\Api\V1\ProjectUpdateRequest;
 
 class ProjectController extends BaseController
 {
+    // Definisikan konstanta untuk kemudahan maintenance
     private const CACHE_KEY_ALL = 'projects_all';
+    private const CACHE_KEY_SINGLE = 'project';
 
     public function index(Request $request)
     {
-        // CACHE: Simpan hasil 'resolve' (Array Murni) ke Redis
         $projects = Cache::remember(self::CACHE_KEY_ALL, 3600, function () use ($request) {
             $data = Project::orderBy('column_order')->get();
             $data = $this->loadRelationships($data, $request);
 
-            // OPTIMASI: Ubah Resource menjadi Array sebelum disimpan
             return ProjectResource::collection($data)->resolve();
         });
 
-        // Karena $projects sudah berupa array (bukan Object Eloquent lagi),
-        // Kita langsung kirim ke sendResponse.
         return $this->sendResponse($projects, "Projects retrieved successfully.");
     }
 
     public function show(Request $request, Project $project)
     {
-        $cacheKey = 'project_' . $project->id;
+        $cacheKey = self::CACHE_KEY_SINGLE . '_' . $project->id;
 
         $projectData = Cache::remember($cacheKey, 3600, function () use ($project, $request) {
             $project = $this->loadRelationships($project, $request);
-
-            // OPTIMASI: Ubah Resource menjadi Array sebelum disimpan
             return (new ProjectResource($project))->resolve();
         });
 
@@ -52,18 +48,16 @@ class ProjectController extends BaseController
     public function store(ProjectStoreRequest $request)
     {
         $data = $request->validated();
-        $slug = Str::slug($data['title']);
-        $data['slug'] = $slug;
+        $data['slug'] = Str::slug($data['title']);
 
         if ($request->hasFile('thumbnail')) {
-            $path = $request->file('thumbnail')->store('projects', 'public');
-            $data['thumbnail'] = $path;
+            $data['thumbnail'] = $request->file('thumbnail')->store('projects', 'public');
         }
 
         $project = Project::create($data);
 
-        // Hapus Cache agar index terupdate
-        $this->clearProjectCache();
+        // Gunakan inherit method dari BaseController
+        $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE);
 
         return $this->sendResponse(new ProjectResource($project), "Project created successfully.");
     }
@@ -71,39 +65,34 @@ class ProjectController extends BaseController
     public function update(ProjectUpdateRequest $request, Project $project)
     {
         $data = $request->validated();
-        $slug = Str::slug($data['title']);
-        $data['slug'] = $slug;
+        $data['slug'] = Str::slug($data['title']);
 
         if ($request->hasFile('thumbnail')) {
             if ($project->thumbnail) {
                 Storage::disk('public')->delete($project->thumbnail);
             }
-            $path = $request->file('thumbnail')->store('projects', 'public');
-            $data['thumbnail'] = $path;
+            $data['thumbnail'] = $request->file('thumbnail')->store('projects', 'public');
         }
 
         $data['category_id'] = $request->category_id;
-
         $project->update($data);
 
         if ($request->has('tech_stack_ids')) {
-            $techStackIds = $request->tech_stack_ids;
-            if (is_string($techStackIds)) {
-                $techStackIds = json_decode($techStackIds, true);
-            }
+            $techStackIds = is_string($request->tech_stack_ids)
+                ? json_decode($request->tech_stack_ids, true)
+                : $request->tech_stack_ids;
             $project->techStacks()->sync($techStackIds);
         }
 
         if ($request->has('tag_ids')) {
-            $tagIds = $request->tag_ids;
-            if (is_string($tagIds)) {
-                $tagIds = json_decode($tagIds, true);
-            }
+            $tagIds = is_string($request->tag_ids)
+                ? json_decode($request->tag_ids, true)
+                : $request->tag_ids;
             $project->tags()->sync($tagIds);
         }
 
-        // Hapus Cache Global & Spesifik ID
-        $this->clearProjectCache($project->id);
+        // Gunakan inherit method dari BaseController
+        $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $project->id);
 
         return $this->sendResponse(new ProjectResource($project), "Project updated successfully.");
     }
@@ -119,8 +108,8 @@ class ProjectController extends BaseController
 
         $project->delete();
 
-        // Hapus Cache
-        $this->clearProjectCache($project->id);
+        // Gunakan inherit method dari BaseController
+        $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $project->id);
 
         return response()->noContent();
     }
@@ -132,7 +121,6 @@ class ProjectController extends BaseController
         }
 
         $isUpdated = false;
-
         if ($request->direction == 'up') {
             $previousProject = Project::where('column_order', '<', $project->column_order)
                 ->orderBy('column_order', 'desc')
@@ -142,7 +130,6 @@ class ProjectController extends BaseController
                 $currentOrder = $project->column_order;
                 $project->column_order = $previousProject->column_order;
                 $previousProject->column_order = $currentOrder;
-
                 $project->save();
                 $previousProject->save();
                 $isUpdated = true;
@@ -156,32 +143,18 @@ class ProjectController extends BaseController
                 $currentOrder = $project->column_order;
                 $project->column_order = $nextProject->column_order;
                 $nextProject->column_order = $currentOrder;
-
                 $project->save();
                 $nextProject->save();
                 $isUpdated = true;
             }
-        } else {
-            return $this->sendError("Invalid direction value. Use 'up' or 'down'.", [], Response::HTTP_BAD_REQUEST);
         }
 
         if ($isUpdated) {
-            // Cukup clear list utama karena urutan berubah
-            $this->clearProjectCache();
+            // Cukup hapus list utama karena urutan berubah,
+            // ID detail tetap sama jadi tidak wajib dihapus (tapi aman juga kalau dihapus)
+            $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE);
         }
 
         return $this->sendResponse([], "Project reordered successfully.");
-    }
-
-    /**
-     * Helper: Clear Cache
-     */
-    private function clearProjectCache($projectId = null)
-    {
-        Cache::forget(self::CACHE_KEY_ALL);
-
-        if ($projectId) {
-            Cache::forget('project_' . $projectId);
-        }
     }
 }
