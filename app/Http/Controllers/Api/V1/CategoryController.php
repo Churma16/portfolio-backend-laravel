@@ -6,6 +6,7 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Api\V1\BaseController;
 use App\Http\Resources\Api\V1\CategoryResource;
 use App\Http\Resources\Api\V1\CategoryCollection;
@@ -14,34 +15,53 @@ use App\Http\Requests\Api\V1\CategoryUpdateRequest;
 
 class CategoryController extends BaseController
 {
+    // Definisikan DUA key ini agar clean
+    private const CACHE_KEY_ALL = 'categories_all';
+    private const CACHE_KEY_SINGLE = 'category'; // <--- TADI INI KURANG
+
     public function index(Request $request)
     {
-        $categories = Category::all();
+        // CACHE READ LIST
+        $categories = Cache::remember(self::CACHE_KEY_ALL, 3600, function () use ($request) {
+            $data = Category::all();
+            $data = $this->loadRelationships($data, $request);
 
-        $categories = $this->loadRelationships($categories, $request);
+            return (new CategoryCollection($data))->resolve();
+        });
 
-        return $this->sendResponse(new CategoryCollection($categories), "Categories retrieved successfully.");
+        return $this->sendResponse($categories, "Categories retrieved successfully.");
     }
 
     public function show(Request $request, Category $category)
     {
-        $category = $this->loadRelationships($category, $request);
+        // CACHE READ DETAIL
+        // Menggunakan key prefix 'category' + ID -> 'category_1'
+        $cacheKey = self::CACHE_KEY_SINGLE . '_' . $category->id;
 
-        return $this->sendResponse(new CategoryResource($category), "Category retrieved successfully.");
+        $categoryData = Cache::remember($cacheKey, 3600, function () use ($category, $request) {
+            $category = $this->loadRelationships($category, $request);
+            return (new CategoryResource($category))->resolve();
+        });
+
+        return $this->sendResponse($categoryData, "Category retrieved successfully.");
     }
-
 
     public function store(CategoryStoreRequest $request)
     {
         $category = Category::create($request->validated());
 
+        // INHERITANCE: Panggil fungsi dari BaseController
+        $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $category->id);
+
         return new CategoryResource($category);
     }
-
 
     public function update(CategoryUpdateRequest $request, Category $category)
     {
         $category->update($request->validated());
+
+        // INHERITANCE: Clear cache
+        $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $category->id);
 
         return new CategoryResource($category);
     }
@@ -49,6 +69,9 @@ class CategoryController extends BaseController
     public function destroy(Request $request, Category $category)
     {
         $category->delete();
+
+        // INHERITANCE: Clear cache
+        $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $category->id);
 
         return response()->noContent();
     }
