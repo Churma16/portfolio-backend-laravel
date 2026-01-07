@@ -25,9 +25,22 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->firstOrFail();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // concat with admin_ to distinguish from other tokens
+        $token = $user->createToken('admin_' . uniqid(), ['admin'])->plainTextToken;
+        // $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
+            'message' => 'Login success',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user
+        ]);
+    }
+    public function generateGuestToken(Request $request)
+    {
+        $user = User::where('email', auth()->user()->email)->firstOrFail();
+        $token = $user->createToken('auth_token')->plainTextToken;
+                return response()->json([
             'message' => 'Login success',
             'access_token' => $token,
             'token_type' => 'Bearer',
