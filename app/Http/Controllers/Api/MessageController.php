@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\MessageStoreRequest;
+use App\Http\Requests\Api\MessageUpdateRequest;
+use App\Mail\ContactFormMail;
 use App\Models\Message;
-use App\Http\Requests\MessageStoreRequest;
-use App\Http\Requests\MessageUpdateRequest;
+use Illuminate\Support\Facades\Mail;
 
 class MessageController extends Controller
 {
@@ -29,7 +32,17 @@ class MessageController extends Controller
      */
     public function store(MessageStoreRequest $request)
     {
-        //
+        $details = $request->validated();
+
+        // Pastikan key validation sama dengan yang dipakai di blade
+        // (misal: 'name', 'email', 'content')
+
+        // GANTI DENGAN EMAIL PRIBADI ANDA
+        Mail::to('fathanmf16@gmail.com')->send(new ContactFormMail($details));
+
+        $message = Message::create($details);
+
+        return response()->json(['message' => 'Email sedang dikirim!']);
     }
 
     /**
