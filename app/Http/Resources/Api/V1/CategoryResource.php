@@ -16,6 +16,7 @@ class CategoryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'color' => $this->color,
             'tags' => TagCollection::make($this->whenLoaded('tags')),
             'tech_stack' => TechStackCollection::make($this->whenLoaded('techStacks')),
         ];
