@@ -17,10 +17,15 @@ class Profile extends Model
     protected $fillable = [
         'name',
         'headline',
-        'bio',
+        'role',
+        'location',
+        'bio_short',
+        'bio_long',
+        'is_hireable',
+        'socials',
+        'hero_image_codes',
         'avatar',
         'cv_files',
-        'socials',
     ];
 
     /**

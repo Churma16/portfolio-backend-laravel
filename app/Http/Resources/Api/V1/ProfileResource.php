@@ -12,6 +12,11 @@ class ProfileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
+        $avatar = "/storage/" . $this->avatar;
+        $cv_files = "/storage/" . $this->cv_files;
+        // $socials = json_encode($this->socials, JSON_UNESCAPED_SLASHES);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -21,8 +26,8 @@ class ProfileResource extends JsonResource
             'bio_long' => $this->bio_long,
             'location' => $this->location,
             'is_hireable' => $this->is_hireable,
-            'avatar' => $this->avatar,
-            'cv_files' => $this->cv_files,
+            'avatar' => $avatar,
+            'cv_files' => $cv_files,
             'hero_image_codes' => $this->hero_image_codes,
             'socials' => $this->socials,
         ];
