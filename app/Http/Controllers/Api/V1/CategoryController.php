@@ -17,7 +17,7 @@ class CategoryController extends BaseController
 {
     // Definisikan DUA key ini agar clean
     private const CACHE_KEY_ALL = 'categories_all';
-    private const CACHE_KEY_SINGLE = 'category'; // <--- TADI INI KURANG
+    private const CACHE_KEY_SINGLE = 'category'; 
 
     public function index(Request $request)
     {
