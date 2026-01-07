@@ -21,12 +21,12 @@ class ProjectStoreRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:200'],
-            'slug' => ['required', 'string', 'max:200', 'unique:projects,slug'],
-            'thumbnail' => ['nullable', 'string', 'max:500'],
+            // 'slug' => ['required', 'string', 'max:200', 'unique:projects,slug'],
+            'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10000'],
             'content' => ['nullable', 'string'],
             'demo_url' => ['nullable', 'string', 'max:500'],
             'repo_url' => ['nullable', 'string', 'max:500'],
-            'is_featured' => ['required'],
+            // 'is_featured' => ['required'],
             'published_at' => ['nullable'],
         ];
     }
