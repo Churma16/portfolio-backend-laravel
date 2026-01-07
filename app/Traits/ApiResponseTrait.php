@@ -13,7 +13,7 @@ trait ApiResponseTrait
                 'message' => $message,
             ],
             'data' => $result,
-        ]);
+        ], 200, [], JSON_UNESCAPED_SLASHES);
     }
 
     public function sendError($error, $code = 404)
