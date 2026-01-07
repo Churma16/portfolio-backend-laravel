@@ -13,12 +13,11 @@ class ProjectResource extends JsonResource
     public function toArray(Request $request): array
     {
 
-        $thumbnail = "/storage/" . $this->thumbnail;
         return [
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'thumbnail' => $thumbnail,
+            'thumbnail' => $this->thumbnail,
             'content' => $this->content,
             'demo_url' => $this->demo_url,
             'repo_url' => $this->repo_url,
