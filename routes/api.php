@@ -20,6 +20,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('profiles', ProfileController::class);
     Route::apiResource('projects', ProjectController::class);
+    Route::post('projects/{project}/reorder', [ProjectController::class, 'reorder']);
     Route::apiResource('tech-stacks', TechStackController::class);
     Route::apiResource('tags', TagController::class);
     Route::apiResource('work-experiences', WorkExperienceController::class);
