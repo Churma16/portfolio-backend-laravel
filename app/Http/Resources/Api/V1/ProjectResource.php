@@ -24,6 +24,7 @@ class ProjectResource extends JsonResource
             'published_at' => $this->published_at,
             'tags' => TagCollection::make($this->whenLoaded('tags')),
             'tech_stack' => TechStackCollection::make($this->whenLoaded('techStacks')),
+            'category' => new CategoryResource($this->whenLoaded('category')),
         ];
     }
 }
