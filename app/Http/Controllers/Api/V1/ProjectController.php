@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache; // <--- PENTING: Import Facade Cache
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Api\V1\ProjectResource;
 use App\Http\Controllers\Api\V1\BaseController;
@@ -16,21 +17,31 @@ use App\Http\Requests\Api\V1\ProjectUpdateRequest;
 
 class ProjectController extends BaseController
 {
+    // Kunci Cache untuk daftar semua project
+    private const CACHE_KEY_ALL = 'projects_all';
+
     public function index(Request $request)
     {
-        $projects = Project::orderBy('column_order')->get();
-
-        $projects = $this->loadRelationships($projects, $request);
+        // CACHE READ: Cek apakah data ada di Redis?
+        // Jika ada, ambil dari Redis. Jika tidak, jalankan function, simpan ke Redis (selama 60 menit/3600 detik), lalu return.
+        $projects = Cache::remember(self::CACHE_KEY_ALL, 3600, function () use ($request) {
+            $projects = Project::orderBy('column_order')->get();
+            return $this->loadRelationships($projects, $request);
+        });
 
         return $this->sendResponse(new ProjectCollection($projects), "Projects retrieved successfully.");
     }
 
     public function show(Request $request, Project $project)
     {
-        $project = $this->loadRelationships($project, $request);
+        // CACHE READ: Cache spesifik per ID project (misal: 'project_1')
+        $cacheKey = 'project_' . $project->id;
 
+        $projectData = Cache::remember($cacheKey, 3600, function () use ($project, $request) {
+            return $this->loadRelationships($project, $request);
+        });
 
-        return $this->sendResponse(new ProjectResource($project), "Project retrieved successfully.");
+        return $this->sendResponse(new ProjectResource($projectData), "Project retrieved successfully.");
     }
 
     public function store(ProjectStoreRequest $request)
@@ -45,6 +56,9 @@ class ProjectController extends BaseController
         }
 
         $project = Project::create($data);
+
+        // HAPUS CACHE karena ada data baru
+        $this->clearProjectCache();
 
         return $this->sendResponse(new ProjectResource($project), "Project created successfully.");
     }
@@ -62,15 +76,11 @@ class ProjectController extends BaseController
             $path = $request->file('thumbnail')->store('projects', 'public');
             $data['thumbnail'] = $path;
         }
-        // return response()->json($request->category_id);
 
         $data['category_id'] = $request->category_id;
 
-
-        // Update data dasar
         $project->update($data);
 
-        // Update Hubungan (Sync akan otomatis hapus yang tidak dipilih & tambah yang baru)
         if ($request->has('tech_stack_ids')) {
             $techStackIds = $request->tech_stack_ids;
             if (is_string($techStackIds)) {
@@ -87,6 +97,8 @@ class ProjectController extends BaseController
             $project->tags()->sync($tagIds);
         }
 
+        // HAPUS CACHE Global & Spesifik ID ini agar data terupdate
+        $this->clearProjectCache($project->id);
 
         return $this->sendResponse(new ProjectResource($project), "Project updated successfully.");
     }
@@ -100,18 +112,21 @@ class ProjectController extends BaseController
         $projectOrder = $project->column_order;
         Project::where('column_order', '>', $projectOrder)->decrement('column_order');
 
-
         $project->delete();
+
+        // HAPUS CACHE
+        $this->clearProjectCache($project->id);
 
         return response()->noContent();
     }
 
     public function reorder(Request $request, Project $project)
     {
-
         if (!$request->has('direction')) {
             return $this->sendError("Direction is required.", [], Response::HTTP_BAD_REQUEST);
         }
+
+        $isUpdated = false;
 
         if ($request->direction == 'up') {
             $previousProject = Project::where('column_order', '<', $project->column_order)
@@ -125,6 +140,7 @@ class ProjectController extends BaseController
 
                 $project->save();
                 $previousProject->save();
+                $isUpdated = true;
             }
         } elseif ($request->direction == 'down') {
             $nextProject = Project::where('column_order', '>', $project->column_order)
@@ -138,9 +154,33 @@ class ProjectController extends BaseController
 
                 $project->save();
                 $nextProject->save();
+                $isUpdated = true;
             }
         } else {
             return $this->sendError("Invalid direction value. Use 'up' or 'down'.", [], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Jika urutan berubah, HAPUS CACHE Global
+        if ($isUpdated) {
+            $this->clearProjectCache(); // Cukup clear list utama karena urutan berubah
+        }
+
+        // Return success response (opsional, karena method reorder biasanya void/json status)
+        return $this->sendResponse([], "Project reordered successfully.");
+    }
+
+    /**
+     * Helper function untuk menghapus cache
+     * Dipanggil saat create, update, delete, atau reorder
+     */
+    private function clearProjectCache($projectId = null)
+    {
+        // 1. Hapus cache list utama (index)
+        Cache::forget(self::CACHE_KEY_ALL);
+
+        // 2. Hapus cache detail project spesifik (show) jika ID diberikan
+        if ($projectId) {
+            Cache::forget('project_' . $projectId);
         }
     }
 }
