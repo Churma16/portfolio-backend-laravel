@@ -12,16 +12,19 @@ class ProjectResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
+        $thumbnail = "/storage/" . $this->thumbnail;
         return [
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'thumbnail' => $this->thumbnail,
+            'thumbnail' => $thumbnail,
             'content' => $this->content,
             'demo_url' => $this->demo_url,
             'repo_url' => $this->repo_url,
             'is_featured' => $this->is_featured,
             'published_at' => $this->published_at,
+            'category_id' => $this->category_id,
             'tags' => TagCollection::make($this->whenLoaded('tags')),
             'tech_stack' => TechStackCollection::make($this->whenLoaded('techStacks')),
             'category' => new CategoryResource($this->whenLoaded('category')),

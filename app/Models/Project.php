@@ -24,6 +24,7 @@ class Project extends Model
         'repo_url',
         'is_featured',
         'published_at',
+        'category_id',
     ];
 
     /**
