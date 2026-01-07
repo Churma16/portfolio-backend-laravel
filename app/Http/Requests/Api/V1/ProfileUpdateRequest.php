@@ -20,11 +20,15 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'avatar' => ['nullable', 'file:png,jpg,jpeg', 'max:2000'],
             'name' => ['required', 'string', 'max:200'],
             'headline' => ['nullable', 'string', 'max:255'],
-            'bio' => ['nullable', 'string'],
-            'avatar' => ['nullable', 'string', 'max:500'],
-            'cv_files' => ['nullable', 'string', 'max:500'],
+            'role' => ['nullable', 'string', 'max:100'],
+            'location' => ['nullable', 'string', 'max:100'],
+            'bio_short' => ['nullable', 'string'],
+            'bio_long' => ['nullable', 'string'],
+            'cv_files' => ['nullable', 'file:pdf', 'max:2000'],
+            'is_hierable' => ['nullable', 'boolean'],
             'socials' => ['nullable', 'json'],
         ];
     }

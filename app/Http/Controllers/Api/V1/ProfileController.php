@@ -34,7 +34,20 @@ class ProfileController extends BaseController
     }
 
     public function update(ProfileUpdateRequest $request, Profile $profile)
+    // public function update(Request $request, Profile $profile)
     {
+        // store avatar
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            return response()->json(['message' => $request->all(), 'file' => $path]);
+            // $request->merge(['avatar' => $path]);
+        }
+
+        if ($request->hasFile('cv_files')) {
+            // $path = $request->file('cv_files')->store('cv_files', 'public');
+            // $request->merge(['cv_files' => $path]);
+        }
+
         $profile->update($request->validated());
 
         return new ProfileResource($profile);

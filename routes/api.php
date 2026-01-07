@@ -25,5 +25,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('work-experiences', WorkExperienceController::class);
     Route::apiResource('categories', CategoryController::class);
     Route::get('/health', [HealthController::class, 'index']);
+    Route::post('/generate-guest-token', [AuthController::class, 'generateGuestToken']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
