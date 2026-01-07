@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\Message;
-use App\Http\Requests\StoreMessageRequest;
-use App\Http\Requests\UpdateMessageRequest;
+use App\Http\Requests\MessageStoreRequest;
+use App\Http\Requests\MessageUpdateRequest;
 
 class MessageController extends Controller
 {
@@ -27,7 +27,7 @@ class MessageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMessageRequest $request)
+    public function store(MessageStoreRequest $request)
     {
         //
     }
@@ -51,7 +51,7 @@ class MessageController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMessageRequest $request, Message $message)
+    public function update(MessageUpdateRequest $request, Message $message)
     {
         //
     }
