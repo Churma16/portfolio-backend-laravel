@@ -6,7 +6,7 @@ use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache; // <--- JANGAN LUPA IMPORT INI
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\Api\V1\ProfileResource;
 use App\Http\Controllers\Api\V1\BaseController;
@@ -16,29 +16,28 @@ use App\Http\Requests\Api\V1\ProfileUpdateRequest;
 
 class ProfileController extends BaseController
 {
-    // Kita buat key statis karena Profile biasanya cuma satu (Singleton)
+    // Karena profil biasanya tunggal, kita cukup pakai satu key utama
     private const CACHE_KEY = 'site_profile';
 
     public function index(Request $request)
     {
-        // CACHE READ: Simpan selama 24 jam (86400 detik) atau selamanya sampai di-update
-        // Karena profil jarang berubah, durasi lama tidak masalah.
+        // CACHE READ: Simpan selama 24 jam (86400 detik)
         $profile = Cache::remember(self::CACHE_KEY, 86400, function () {
-            return Profile::first();
+            $data = Profile::first();
+
+            return $data ? (new ProfileResource($data))->resolve() : null;
         });
 
-        // Pastikan handle jika profile belum dibuat sama sekali (null)
         if (!$profile) {
             return $this->sendError("Profile not found.", [], 404);
         }
 
-        return $this->sendResponse(new ProfileResource($profile), "Profile retrieved successfully.");
+        return $this->sendResponse($profile, "Profile retrieved successfully.");
     }
 
     public function show(Request $request, Profile $profile)
     {
-        // Sebenarnya method ini mungkin redundan jika Anda sudah punya index yang me-return Profile::first()
-        // Tapi jika tetap dipakai, tidak perlu cache khusus karena index sudah meng-cover data utama.
+        // Tetap menggunakan resource untuk konsistensi jika show dipanggil dengan ID
         return new ProfileResource($profile);
     }
 
@@ -46,8 +45,7 @@ class ProfileController extends BaseController
     {
         $profile = Profile::create($request->validated());
 
-        // HAPUS CACHE: Agar index() selanjutnya mengambil data yang baru dibuat
-        Cache::forget(self::CACHE_KEY);
+        $this->clearCache(self::CACHE_KEY, '');
 
         return new ProfileResource($profile);
     }
@@ -70,23 +68,19 @@ class ProfileController extends BaseController
             if ($profile->avatar) {
                 Storage::disk('public')->delete($profile->avatar);
             }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $data['avatar'] = $path;
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
 
         if ($request->hasFile('cv_files')) {
             if ($profile->cv_files) {
                 Storage::disk('public')->delete($profile->cv_files);
             }
-            $path = $request->file('cv_files')->store('cv_files', 'public');
-            $data['cv_files'] = $path;
+            $data['cv_files'] = $request->file('cv_files')->store('cv_files', 'public');
         }
 
         $profile->update($data);
 
-        // HAPUS CACHE: Ini Bagian Paling Penting
-        // Setelah update foto/text, hapus cache lama agar Frontend dapat data baru
-        Cache::forget(self::CACHE_KEY);
+        $this->clearCache(self::CACHE_KEY, '');
 
         return $this->sendResponse(new ProfileResource($profile), "Profile updated successfully.");
     }
@@ -94,13 +88,12 @@ class ProfileController extends BaseController
     public function destroy(Request $request, Profile $profile)
     {
         if ($profile->avatar) {
-             Storage::disk('public')->delete($profile->avatar);
+            Storage::disk('public')->delete($profile->avatar);
         }
 
         $profile->delete();
 
-        // HAPUS CACHE: Agar index() selanjutnya tidak menampilkan data hantu (yang sudah dihapus)
-        Cache::forget(self::CACHE_KEY);
+        $this->clearCache(self::CACHE_KEY, '');
 
         return response()->noContent();
     }
