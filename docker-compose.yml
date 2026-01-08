@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # App (Laravel)
+  app:
+    build: .
+    image: churma-app
+    container_name: churma-app
+    restart: always
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - db
+      - redis
+    networks:
+      - churma-net
+
+  # Queue Worker (Antrian Email)
+  queue:
+    image: churma-app
+    container_name: churma-queue
+    restart: always
+    command: php artisan queue:work --tries=3 --timeout=90
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - app
+      - db
+      - redis
+    networks:
+      - churma-net
+
+  # Web Server (Nginx)
+  webserver:
+    image: nginx:alpine
+    container_name: churma-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./frontend-dist:/var/www/frontend # Mounting React Build
+    depends_on:
+      - app
+    networks:
+      - churma-net
+
+  # Database
+  db:
+    image: mysql:8.0
+    container_name: churma-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - churma-net
+
+  # Redis
+  redis:
+    image: redis:alpine
+    container_name: churma-redis
+    restart: always
+    networks:
+      - churma-net
+
+networks:
+  churma-net:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
