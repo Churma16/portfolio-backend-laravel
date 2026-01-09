@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   # App (Laravel)
@@ -8,6 +8,8 @@ services:
     container_name: churma-app
     restart: always
     working_dir: /var/www
+    ports:
+      - "3308:3306"
     volumes:
       - ./:/var/www
     depends_on:
@@ -23,14 +25,13 @@ services:
     restart: always
     command: php artisan queue:work --tries=3 --timeout=90
     volumes:
-      - ./:/var/www
+      - .:/var/www
     depends_on:
       - app
       - db
       - redis
     networks:
       - churma-net
-
   # Web Server (Nginx)
   webserver:
     image: nginx:alpine
@@ -38,10 +39,12 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/
-      - ./frontend-dist:/var/www/frontend # Mounting React Build
+      - /etc/letsencrypt:/etc/letsencrypt
+#      - ./frontend-dist:/var/www/frontend
     depends_on:
       - app
     networks:
@@ -55,8 +58,8 @@ services:
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
+    ports:
+      - "3306:3306"
     volumes:
       - dbdata:/var/lib/mysql
     networks:
