@@ -1,22 +1,28 @@
 <x-mail::message>
-# Ada Peluang Kolaborasi Baru! 💼
+# 🚀 New Mission: Incoming Inquiry!
 
-Halo, ada pesan baru masuk:
+Halo Fathan, sistem **Churma.codes** baru saja menerima pesan dari seseorang yang tertarik membangun *scalable apps* bersama Anda.
+
+Berikut detail pengirimnya:
 
 <x-mail::panel>
-**Nama:** {{ $data['name'] }}
+**Name:** {{ $data['name'] }}
 <br>
 **Email:** {{ $data['email'] }}
 </x-mail::panel>
 
-**Pesan Mereka:**
+**Message Content:**
 
-{{ $data['content'] ?? $data['message'] }}
+"{{ $data['content'] ?? $data['message'] }}"
+
+---
+
+Jangan biarkan mereka menunggu terlalu lama. Segera balas untuk memulai kolaborasi.
 
 <x-mail::button :url="'mailto:' . $data['email']">
-Balas Pesan
+Reply to {{ $data['name'] }} ➜
 </x-mail::button>
 
-Salam,
-**Portfolio Notification System**
+Happy Coding,
+**Churma.codes Notification Bot**
 </x-mail::message>
