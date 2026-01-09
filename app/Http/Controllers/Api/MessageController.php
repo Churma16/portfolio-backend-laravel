@@ -32,8 +32,14 @@ class MessageController extends Controller
      */
     public function store(MessageStoreRequest $request)
     {
-        $details = $request->validated();
+        if ($request->filled('gotcha')) {
 
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesan terkirim!'
+            ], 200);
+        }
+        $details = $request->validated();
         // Pastikan key validation sama dengan yang dipakai di blade
         // (misal: 'name', 'email', 'content')
 
