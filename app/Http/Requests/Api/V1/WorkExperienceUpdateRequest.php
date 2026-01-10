@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class WorkExperienceUpdateRequest extends FormRequest
@@ -19,6 +20,12 @@ class WorkExperienceUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+
+//        $this->merge([
+//            'start_date' => $this->input('start_date') ? Carbon::parse($this->input('start_date'))->format('Y-m-d') : null,,
+//            'end_date' => $this->input('end_date') ? Carbon::parse($this->input('end_date'))->format('Y-m-d') : null,
+//        ]);
+
         return [
             'company' => ['required', 'string', 'max:200'],
             'position' => ['required', 'string', 'max:200'],
