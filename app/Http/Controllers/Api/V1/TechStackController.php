@@ -49,7 +49,7 @@ class TechStackController extends BaseController
 
     public function store(TechStackStoreRequest $request)
     {
-        $request->merge(['slug' => Str::slug($request->name)]);
+//        $request->merge(['slug' => Str::slug($request->name)]);
 
         $techStack = TechStack::create($request->all());
 
@@ -62,7 +62,7 @@ class TechStackController extends BaseController
 
     public function update(TechStackUpdateRequest $request, TechStack $techStack)
     {
-        $request->merge(['slug' => Str::slug($request->name)]);
+//        $request->merge(['slug' => Str::slug($request->name)]);
 
         $techStack->update($request->validated());
 
