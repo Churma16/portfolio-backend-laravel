@@ -17,12 +17,12 @@ class WorkExperienceResource extends JsonResource
             'company' => $this->company,
             'position' => $this->position,
             'location' => $this->location,
-            'start_date' => $this->start_date,
-            'end_date' => $this->end_date,
+            'start_date' => $this->start_date->format("M Y"),
+            'end_date' => $this->end_date->format("M Y"),
             'is_current' => $this->is_current,
             'description' => $this->description,
             'tags' => TagCollection::make($this->whenLoaded('tags')),
-            'tech_stack' => TechStackCollection::make($this->whenLoaded('techStack')),
+            'tech_stack' => TechStackCollection::make($this->whenLoaded('techStacks')),
         ];
     }
 }
