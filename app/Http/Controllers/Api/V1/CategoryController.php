@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Category;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
-use App\Http\Controllers\Api\V1\BaseController;
-use App\Http\Resources\Api\V1\CategoryResource;
-use App\Http\Resources\Api\V1\CategoryCollection;
 use App\Http\Requests\Api\V1\CategoryStoreRequest;
 use App\Http\Requests\Api\V1\CategoryUpdateRequest;
+use App\Http\Resources\Api\V1\CategoryCollection;
+use App\Http\Resources\Api\V1\CategoryResource;
+use App\Models\Category;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class CategoryController extends BaseController
 {
@@ -48,6 +46,7 @@ class CategoryController extends BaseController
 
     public function store(CategoryStoreRequest $request)
     {
+
         $category = Category::create($request->validated());
 
         // INHERITANCE: Panggil fungsi dari BaseController
@@ -58,6 +57,7 @@ class CategoryController extends BaseController
 
     public function update(CategoryUpdateRequest $request, Category $category)
     {
+
         $category->update($request->validated());
 
         // INHERITANCE: Clear cache
