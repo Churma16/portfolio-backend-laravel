@@ -49,7 +49,6 @@ class TagController extends BaseController
 
     public function store(TagStoreRequest $request)
     {
-        $request->merge(['slug' => Str::slug($request->name)]);
 
         $tag = Tag::create($request->all());
 
@@ -61,9 +60,9 @@ class TagController extends BaseController
 
     public function update(TagUpdateRequest $request, Tag $tag)
     {
-        if ($request->has('name')) {
-            $request->merge(['slug' => Str::slug($request->name)]);
-        }
+//        if ($request->has('name')) {
+//            $request->merge(['slug' => Str::slug($request->name)]);
+//        }
 
         $tag->update($request->all());
 

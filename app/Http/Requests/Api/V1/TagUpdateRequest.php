@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class TagUpdateRequest extends FormRequest
 {
@@ -19,9 +20,11 @@ class TagUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $this->merge(['slug' => Str::slug($this->name)]);
+
         return [
             'name' => ['required', 'string', 'max:100'],
-            // 'slug' => ['required', 'string', 'max:100', 'unique:tags,slug'],
+             'slug' => ['required', 'string', 'max:100', 'unique:tags,slug'],
             'color' => ['nullable', 'string', 'max:10'],
             'category_id' => ['nullable', 'integer', 'exists:Categories,id'],
         ];
