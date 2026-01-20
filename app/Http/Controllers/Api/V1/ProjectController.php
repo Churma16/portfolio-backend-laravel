@@ -56,6 +56,21 @@ class ProjectController extends BaseController
 
         $project = Project::create($data);
 
+
+        if ($request->has('tech_stack_ids')) {
+            $techStackIds = is_string($request->tech_stack_ids)
+                ? json_decode($request->tech_stack_ids, true)
+                : $request->tech_stack_ids;
+            $project->techStacks()->sync($techStackIds);
+        }
+
+        if ($request->has('tag_ids')) {
+            $tagIds = is_string($request->tag_ids)
+                ? json_decode($request->tag_ids, true)
+                : $request->tag_ids;
+            $project->tags()->sync($tagIds);
+        }
+
         // Gunakan inherit method dari BaseController
         $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE);
 
