@@ -1,5 +1,4 @@
 
-
 services:
   # App (Laravel)
   app:
@@ -8,8 +7,8 @@ services:
     container_name: churma-app
     restart: always
     working_dir: /var/www
-    ports:
-      - "3308:3306"
+    # ports:
+    #  - "3308:3306"
     volumes:
       - ./:/var/www
     depends_on:
@@ -38,13 +37,12 @@ services:
     container_name: churma-nginx
     restart: always
     ports:
-      - "80:80"
+      - "8001:80"
       - "443:443"
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/
       - /etc/letsencrypt:/etc/letsencrypt
-#      - ./frontend-dist:/var/www/frontend
     depends_on:
       - app
     networks:
@@ -59,7 +57,7 @@ services:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
       - dbdata:/var/lib/mysql
     networks:
