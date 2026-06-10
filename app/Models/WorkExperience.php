@@ -24,6 +24,7 @@ class WorkExperience extends Model
         'is_current',
         'description',
         'column_order',
+        'achievements',
     ];
 
     /**
@@ -39,6 +40,7 @@ class WorkExperience extends Model
             'end_date' => 'date',
             'is_current' => 'boolean',
             'column_order' => 'integer',
+            'achievements' => 'array',
         ];
     }
 

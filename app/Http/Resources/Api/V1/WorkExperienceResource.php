@@ -21,6 +21,8 @@ class WorkExperienceResource extends JsonResource
             'end_date' => $this->end_date->format("M Y"),
             'is_current' => $this->is_current,
             'description' => $this->description,
+            'column_order' => $this->column_order,
+            'achievements' => $this->achievements,
             'tags' => TagCollection::make($this->whenLoaded('tags')),
             'tech_stack' => TechStackCollection::make($this->whenLoaded('techStacks')),
         ];

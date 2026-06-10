@@ -27,6 +27,7 @@ class WorkExperienceStoreRequest extends FormRequest
             'end_date' => ['nullable', 'date'],
             'is_current' => ['required'],
             'description' => ['nullable', 'string'],
+            'achievements' => ['nullable', 'array'],
         ];
     }
 }
