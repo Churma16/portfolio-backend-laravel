@@ -30,7 +30,7 @@ jobs:
           script: |
             cd /root/my-app
 
-            docker compose exec -T app composer install --no-dev --optimize-autoloader
+            docker compose exec -T app env COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
             docker compose exec -T app php artisan migrate --force
 
