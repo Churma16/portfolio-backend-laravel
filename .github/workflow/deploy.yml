@@ -1,0 +1,42 @@
+name: Deploy Backend Laravel
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy Files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "app/,bootstrap/,config/,database/,public/,resources/,routes/,nginx/,artisan,composer.json,composer.lock,docker-compose.yml,Dockerfile"
+          target: "/root/my-app"
+
+      - name: Update Dependencies & Run Artisan Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /root/my-app
+
+            docker compose exec -T app composer install --no-dev --optimize-autoloader
+
+            docker compose exec -T app php artisan migrate --force
+
+            docker compose exec -T app php artisan optimize:clear
+            docker compose exec -T app php artisan config:cache
+            docker compose exec -T app php artisan route:cache
+            docker compose exec -T app php artisan view:cache
+
+            docker compose restart queue
