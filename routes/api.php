@@ -34,8 +34,10 @@ Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
     Route::apiResource('projects', ProjectController::class)->only(['store', 'update', 'destroy']);
     Route::post('projects/{project}/reorder', [ProjectController::class, 'reorder']);
     Route::apiResource('tech-stacks', TechStackController::class)->only(['store', 'update', 'destroy']);
+    Route::post('tech-stacks/{tech_stack}/reorder', [TechStackController::class, 'reorder']);
     Route::apiResource('tags', TagController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('work-experiences', WorkExperienceController::class)->only(['store', 'update', 'destroy']);
+    Route::post('work-experiences/{work_experience}/reorder', [WorkExperienceController::class, 'reorder']);
     Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('messages', MessageController::class)->only(['store', 'update', 'destroy']);
     Route::post('/generate-guest-token', [AuthController::class, 'generateGuestToken']);
