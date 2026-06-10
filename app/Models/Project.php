@@ -25,6 +25,7 @@ class Project extends Model
         'is_featured',
         'published_at',
         'category_id',
+        'column_order',
     ];
 
     /**
@@ -38,7 +39,15 @@ class Project extends Model
             'id' => 'integer',
             'is_featured' => 'boolean',
             'published_at' => 'timestamp',
+            'column_order' => 'integer',
         ];
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->column_order = (static::max('column_order') ?? 0) + 1;
+        });
     }
 
     public function techStacks(): BelongsToMany
