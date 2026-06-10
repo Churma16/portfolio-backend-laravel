@@ -30,6 +30,9 @@ jobs:
           script: |
             cd /root/my-app
 
+            # Hapus cache bootstrap lama agar tidak crash saat booting setelah pergantian package
+            docker compose exec -T app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php
+
             docker compose exec -T app env COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
             docker compose exec -T app php artisan migrate --force
