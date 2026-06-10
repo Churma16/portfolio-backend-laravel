@@ -18,8 +18,8 @@ use App\Http\Requests\Api\V1\ProjectUpdateRequest;
 class ProjectController extends BaseController
 {
     // Definisikan konstanta untuk kemudahan maintenance
-    private const CACHE_KEY_ALL = 'projects_all';
-    private const CACHE_KEY_SINGLE = 'project';
+    private const CACHE_KEY_ALL = 'projects:list:all';
+    private const CACHE_KEY_SINGLE = 'projects:single';
 
     public function index(Request $request)
     {
@@ -35,7 +35,7 @@ class ProjectController extends BaseController
 
     public function show(Request $request, Project $project)
     {
-        $cacheKey = self::CACHE_KEY_SINGLE . '_' . $project->id;
+        $cacheKey = self::CACHE_KEY_SINGLE . ':' . $project->id;
 
         $projectData = Cache::remember($cacheKey, 3600, function () use ($project, $request) {
             $project = $this->loadRelationships($project, $request);

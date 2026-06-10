@@ -14,8 +14,8 @@ use Illuminate\Support\Str;
 class CategoryController extends BaseController
 {
     // Definisikan DUA key ini agar clean
-    private const CACHE_KEY_ALL = 'categories_all';
-    private const CACHE_KEY_SINGLE = 'category';
+    private const CACHE_KEY_ALL = 'categories:list:all';
+    private const CACHE_KEY_SINGLE = 'categories:single';
 
     public function index(Request $request)
     {
@@ -33,8 +33,8 @@ class CategoryController extends BaseController
     public function show(Request $request, Category $category)
     {
         // CACHE READ DETAIL
-        // Menggunakan key prefix 'category' + ID -> 'category_1'
-        $cacheKey = self::CACHE_KEY_SINGLE . '_' . $category->id;
+        // Menggunakan key prefix 'categories:single' + ID -> 'categories:single:1'
+        $cacheKey = self::CACHE_KEY_SINGLE . ':' . $category->id;
 
         $categoryData = Cache::remember($cacheKey, 3600, function () use ($category, $request) {
             $category = $this->loadRelationships($category, $request);

@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Cache;
 
 class WorkExperienceController extends BaseController
 {
-    private const CACHE_KEY_ALL = 'work_experiences_all';
-    private const CACHE_KEY_SINGLE = 'work_experience';
+    private const CACHE_KEY_ALL = 'workExperiences:list:all';
+    private const CACHE_KEY_SINGLE = 'workExperiences:single';
 
     public function index(Request $request): JsonResponse
     {
@@ -29,7 +29,7 @@ class WorkExperienceController extends BaseController
 
     public function show(Request $request, WorkExperience $workExperience): JsonResponse
     {
-        $cacheKey = self::CACHE_KEY_SINGLE . '_' . $workExperience->id;
+        $cacheKey = self::CACHE_KEY_SINGLE . ':' . $workExperience->id;
 
         $workExperienceData = Cache::remember($cacheKey, 3600, function () use ($workExperience, $request) {
             $workExperience = $this->loadRelationships($workExperience, $request);

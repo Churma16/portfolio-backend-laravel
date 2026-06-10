@@ -17,8 +17,8 @@ use App\Http\Requests\Api\V1\TechStackUpdateRequest;
 class TechStackController extends BaseController
 {
     // Definisikan nama key cache di sini
-    private const CACHE_KEY_ALL = 'tech_stacks_all';
-    private const CACHE_KEY_SINGLE = 'tech_stack';
+    private const CACHE_KEY_ALL = 'tech_stacks:list:all';
+    private const CACHE_KEY_SINGLE = 'tech_stacks:single';
 
     public function index(Request $request)
     {
@@ -37,7 +37,7 @@ class TechStackController extends BaseController
     public function show(Request $request, TechStack $techStack)
     {
         // CACHE READ DETAIL
-        $cacheKey = self::CACHE_KEY_SINGLE . '_' . $techStack->id;
+        $cacheKey = self::CACHE_KEY_SINGLE . ':' . $techStack->id;
 
         $techStackData = Cache::remember($cacheKey, 3600, function () use ($techStack, $request) {
             $techStack = $this->loadRelationships($techStack, $request);

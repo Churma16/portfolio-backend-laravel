@@ -28,7 +28,7 @@ class BaseController extends Controller
 
         // 2. Hapus cache detail item jika ID diberikan
         if ($modelId) {
-            Cache::forget($singleKeyPrefix . '_' . $modelId);
+            Cache::forget($singleKeyPrefix . ':' . $modelId);
         }
     }
 }

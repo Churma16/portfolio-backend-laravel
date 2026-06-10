@@ -17,8 +17,8 @@ use App\Http\Controllers\Api\V1\BaseController;
 class TagController extends BaseController
 {
     // Konstanta key cache agar mudah dikelola
-    private const CACHE_KEY_ALL = 'tags_all';
-    private const CACHE_KEY_SINGLE = 'tag';
+    private const CACHE_KEY_ALL = 'tags:list:all';
+    private const CACHE_KEY_SINGLE = 'tags:single';
 
     public function index(Request $request)
     {
@@ -36,7 +36,7 @@ class TagController extends BaseController
     public function show(Request $request, Tag $tag)
     {
         // CACHE READ: Mengambil satu tag spesifik (prefix: tag_)
-        $cacheKey = self::CACHE_KEY_SINGLE . '_' . $tag->id;
+        $cacheKey = self::CACHE_KEY_SINGLE . ':' . $tag->id;
 
         $tagData = Cache::remember($cacheKey, 3600, function () use ($tag, $request) {
             $tag = $this->loadRelationships($tag, $request);
