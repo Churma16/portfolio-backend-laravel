@@ -23,6 +23,7 @@ class WorkExperience extends Model
         'end_date',
         'is_current',
         'description',
+        'column_order',
     ];
 
     /**
@@ -37,7 +38,15 @@ class WorkExperience extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'is_current' => 'boolean',
+            'column_order' => 'integer',
         ];
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->column_order = (static::max('column_order') ?? 0) + 1;
+        });
     }
 
     public function techStacks(): BelongsToMany

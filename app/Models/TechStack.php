@@ -21,6 +21,7 @@ class TechStack extends Model
         'slug',
         'icon',
         'category_id',
+        'column_order',
     ];
 
     /**
@@ -33,7 +34,15 @@ class TechStack extends Model
         return [
             'id' => 'integer',
             'category_id' => 'integer',
+            'column_order' => 'integer',
         ];
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->column_order = (static::max('column_order') ?? 0) + 1;
+        });
     }
 
     public function category(): BelongsTo
