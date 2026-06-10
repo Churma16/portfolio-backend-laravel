@@ -28,6 +28,7 @@ class ProjectStoreRequest extends FormRequest
             'repo_url' => ['nullable', 'string', 'max:500'],
             // 'is_featured' => ['required'],
             'published_at' => ['nullable'],
+            'category_id' => ['nullable', 'exists:categories,id'],
         ];
     }
 }
