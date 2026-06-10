@@ -18,7 +18,7 @@ class WorkExperienceController extends BaseController
     public function index(Request $request): JsonResponse
     {
         $data = Cache::remember(self::CACHE_KEY_ALL, 3600, function () use ($request) {
-            $data = WorkExperience::get();
+            $data = WorkExperience::orderBy('column_order')->get();
             $data = $this->loadRelationships($data, $request);
 
             return WorkExperienceResource::collection($data)->resolve();
@@ -73,10 +73,55 @@ class WorkExperienceController extends BaseController
 
     public function destroy(Request $request, WorkExperience $workExperience)
     {
+        $workExperienceOrder = $workExperience->column_order;
+        WorkExperience::where('column_order', '>', $workExperienceOrder)->decrement('column_order');
+
         $workExperience->delete();
 
         $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $workExperience->id);
 
         return response()->noContent();
+    }
+
+    public function reorder(Request $request, WorkExperience $workExperience)
+    {
+        if (!$request->has('direction')) {
+            return $this->sendError("Direction is required.", [], 400);
+        }
+
+        $isUpdated = false;
+        if ($request->direction == 'up') {
+            $previousWorkExperience = WorkExperience::where('column_order', '<', $workExperience->column_order)
+                ->orderBy('column_order', 'desc')
+                ->first();
+
+            if ($previousWorkExperience) {
+                $currentOrder = $workExperience->column_order;
+                $workExperience->column_order = $previousWorkExperience->column_order;
+                $previousWorkExperience->column_order = $currentOrder;
+                $workExperience->save();
+                $previousWorkExperience->save();
+                $isUpdated = true;
+            }
+        } elseif ($request->direction == 'down') {
+            $nextWorkExperience = WorkExperience::where('column_order', '>', $workExperience->column_order)
+                ->orderBy('column_order', 'asc')
+                ->first();
+
+            if ($nextWorkExperience) {
+                $currentOrder = $workExperience->column_order;
+                $workExperience->column_order = $nextWorkExperience->column_order;
+                $nextWorkExperience->column_order = $currentOrder;
+                $workExperience->save();
+                $nextWorkExperience->save();
+                $isUpdated = true;
+            }
+        }
+
+        if ($isUpdated) {
+            $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE);
+        }
+
+        return $this->sendResponse([], "Work Experience reordered successfully.");
     }
 }

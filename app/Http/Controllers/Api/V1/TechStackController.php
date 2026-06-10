@@ -24,7 +24,7 @@ class TechStackController extends BaseController
     {
         // CACHE READ
         $techStacks = Cache::remember(self::CACHE_KEY_ALL, 3600, function () use ($request) {
-            $data = TechStack::all();
+            $data = TechStack::orderBy('column_order')->get();
             $data = $this->loadRelationships($data, $request);
 
             // Simpan sebagai Array murni
@@ -74,11 +74,56 @@ class TechStackController extends BaseController
 
     public function destroy(Request $request, TechStack $techStack)
     {
+        $techStackOrder = $techStack->column_order;
+        TechStack::where('column_order', '>', $techStackOrder)->decrement('column_order');
+
         $techStack->delete();
 
         // HAPUS CACHE
         $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $techStack->id);
 
         return response()->noContent();
+    }
+
+    public function reorder(Request $request, TechStack $techStack)
+    {
+        if (!$request->has('direction')) {
+            return $this->sendError("Direction is required.", [], Response::HTTP_BAD_REQUEST);
+        }
+
+        $isUpdated = false;
+        if ($request->direction == 'up') {
+            $previousTechStack = TechStack::where('column_order', '<', $techStack->column_order)
+                ->orderBy('column_order', 'desc')
+                ->first();
+
+            if ($previousTechStack) {
+                $currentOrder = $techStack->column_order;
+                $techStack->column_order = $previousTechStack->column_order;
+                $previousTechStack->column_order = $currentOrder;
+                $techStack->save();
+                $previousTechStack->save();
+                $isUpdated = true;
+            }
+        } elseif ($request->direction == 'down') {
+            $nextTechStack = TechStack::where('column_order', '>', $techStack->column_order)
+                ->orderBy('column_order', 'asc')
+                ->first();
+
+            if ($nextTechStack) {
+                $currentOrder = $techStack->column_order;
+                $techStack->column_order = $nextTechStack->column_order;
+                $nextTechStack->column_order = $currentOrder;
+                $techStack->save();
+                $nextTechStack->save();
+                $isUpdated = true;
+            }
+        }
+
+        if ($isUpdated) {
+            $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE);
+        }
+
+        return $this->sendResponse([], "TechStack reordered successfully.");
     }
 }
