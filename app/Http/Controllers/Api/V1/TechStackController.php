@@ -56,6 +56,7 @@ class TechStackController extends BaseController
         // HAPUS CACHE (Panggil method dari BaseController)
         // Parameter: (Key List, Key Prefix Single, ID Model)
         $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $techStack->id);
+        Cache::forget('tech_stack_categories:list:all');
 
         return $this->sendResponse(new TechStackResource($techStack), "TechStack created successfully.");
     }
@@ -68,6 +69,7 @@ class TechStackController extends BaseController
 
         // HAPUS CACHE
         $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $techStack->id);
+        Cache::forget('tech_stack_categories:list:all');
 
         return $this->sendResponse(new TechStackResource($techStack), "TechStack updated successfully.");
     }
@@ -81,6 +83,7 @@ class TechStackController extends BaseController
 
         // HAPUS CACHE
         $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE, $techStack->id);
+        Cache::forget('tech_stack_categories:list:all');
 
         return response()->noContent();
     }
@@ -122,6 +125,7 @@ class TechStackController extends BaseController
 
         if ($isUpdated) {
             $this->clearCache(self::CACHE_KEY_ALL, self::CACHE_KEY_SINGLE);
+            Cache::forget('tech_stack_categories:list:all');
         }
 
         return $this->sendResponse([], "TechStack reordered successfully.");
