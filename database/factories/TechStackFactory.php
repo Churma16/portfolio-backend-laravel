@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
+use App\Models\TechStackCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class TechStackFactory extends Factory
@@ -16,7 +16,7 @@ class TechStackFactory extends Factory
             'name' => fake()->name(),
             'slug' => fake()->slug(),
             'icon' => fake()->regexify('[A-Za-z0-9]{255}'),
-            'category_id' => Category::factory(),
+            'tech_stack_category_id' => TechStackCategory::factory(),
         ];
     }
 }

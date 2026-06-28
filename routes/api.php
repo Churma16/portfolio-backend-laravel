@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\TagController;
 use App\Http\Controllers\Api\V1\TechStackController;
 use App\Http\Controllers\Api\V1\WorkExperienceController;
+use App\Http\Controllers\Api\V1\TechStackCategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,7 @@ Route::apiResource('tech-stacks', TechStackController::class)->only(['index', 's
 Route::apiResource('tags', TagController::class)->only(['index', 'show']);
 Route::apiResource('work-experiences', WorkExperienceController::class)->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+Route::apiResource('tech-stack-categories', TechStackCategoryController::class)->only(['index', 'show']);
 
 // Admin write routes (create, store, update, delete)
 Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
@@ -39,6 +41,7 @@ Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
     Route::apiResource('work-experiences', WorkExperienceController::class)->only(['store', 'update', 'destroy']);
     Route::post('work-experiences/{work_experience}/reorder', [WorkExperienceController::class, 'reorder']);
     Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('tech-stack-categories', TechStackCategoryController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('messages', MessageController::class)->only(['store', 'update', 'destroy']);
     Route::post('/generate-guest-token', [AuthController::class, 'generateGuestToken']);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

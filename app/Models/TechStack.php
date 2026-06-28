@@ -20,7 +20,7 @@ class TechStack extends Model
         'name',
         'slug',
         'icon',
-        'category_id',
+        'tech_stack_category_id',
         'column_order',
     ];
 
@@ -33,7 +33,7 @@ class TechStack extends Model
     {
         return [
             'id' => 'integer',
-            'category_id' => 'integer',
+            'tech_stack_category_id' => 'integer',
             'column_order' => 'integer',
         ];
     }
@@ -45,9 +45,9 @@ class TechStack extends Model
         });
     }
 
-    public function category(): BelongsTo
+    public function techStackCategory(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(TechStackCategory::class, 'tech_stack_category_id');
     }
 
     public function projects(): BelongsToMany

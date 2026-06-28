@@ -20,13 +20,17 @@ class TechStackUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        $this->merge(['slug' => Str::slug($this->name)]);
+        if ($this->name) {
+            $this->merge(['slug' => Str::slug($this->name)]);
+        }
+
+        $id = $this->route('tech_stack')->id ?? $this->route('tech_stack');
 
         return [
-            'name' => ['required', 'string', 'max:100'],
-            'slug' => ['required', 'string', 'max:100', 'unique:tech_stacks,slug'],
+            'name' => ['sometimes', 'required', 'string', 'max:100'],
+            'slug' => ['sometimes', 'required', 'string', 'max:100', 'unique:tech_stacks,slug,' . $id],
             'icon' => ['nullable', 'string', 'max:255'],
-            'category_id' => ['nullable', 'integer', 'exists:Categories,id'],
+            'tech_stack_category_id' => ['nullable', 'integer', 'exists:tech_stack_categories,id'],
         ];
     }
 }
