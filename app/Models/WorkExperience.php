@@ -53,7 +53,7 @@ class WorkExperience extends Model
 
     public function techStacks(): BelongsToMany
     {
-        return $this->belongsToMany(TechStack::class);
+        return $this->belongsToMany(TechStack::class)->orderBy('column_order', 'asc');
     }
 
     public function tags(): BelongsToMany
