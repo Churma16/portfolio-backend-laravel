@@ -30,16 +30,23 @@ jobs:
           script: |
             cd /root/my-app
 
-            # Hapus cache bootstrap lama agar tidak crash saat booting setelah pergantian package
-            docker compose exec -T app rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php
+            # 1. Matikan queue sementara agar tidak crash saat folder vendor diubah
+            docker compose stop queue
 
+            # 2. Hapus semua cache lama agar tidak crash saat booting setelah pergantian package
+            docker compose exec -T app rm -f bootstrap/cache/*.php
+
+            # 3. Install dependency untuk production
             docker compose exec -T app env COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
+            # 4. Migrate database
             docker compose exec -T app php artisan migrate --force
 
+            # 5. Clear & Re-cache
             docker compose exec -T app php artisan optimize:clear
             docker compose exec -T app php artisan config:cache
             docker compose exec -T app php artisan route:cache
             docker compose exec -T app php artisan view:cache
 
-            docker compose restart queue
+            # 6. Nyalakan queue kembali setelah deploy selesai
+            docker compose start queue
