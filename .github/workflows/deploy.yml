@@ -2,11 +2,8 @@ name: Deploy Backend Laravel
 
 on:
   push:
-    branches:
-      - master
-    paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
+    tags:
+      - 'v*'
 
 jobs:
   build-and-deploy:
