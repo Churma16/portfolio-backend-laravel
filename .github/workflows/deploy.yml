@@ -7,46 +7,55 @@ on:
 
 jobs:
   build-and-deploy:
+    name: Build Image and Deploy Laravel Service
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Deploy Files to VPS
-        uses: appleboy/scp-action@v0.1.7
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "app/,bootstrap/,config/,database/,public/,resources/,routes/,nginx/,artisan,composer.json,composer.lock,docker-compose.yml,Dockerfile"
-          target: "/root/my-app"
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath, gd
 
-      - name: Update Dependencies & Run Artisan Commands
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Install Composer Dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/churma16/portfolio-backend-laravel:${{ github.ref_name }}
+            ghcr.io/churma16/portfolio-backend-laravel:latest
+
+      - name: Activate Service and Verify on VPS
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /root/my-app
-
-            # 1. Matikan queue sementara agar tidak crash saat folder vendor diubah
-            docker compose stop queue
-
-            # 2. Hapus semua cache lama agar tidak crash saat booting setelah pergantian package
-            docker compose exec -T app rm -f bootstrap/cache/*.php
-
-            # 3. Install dependency untuk production
-            docker compose exec -T app env COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-            # 4. Migrate database
-            docker compose exec -T app php artisan migrate --force
-
-            # 5. Clear & Re-cache
-            docker compose exec -T app php artisan optimize:clear
-            docker compose exec -T app php artisan config:cache
-            docker compose exec -T app php artisan route:cache
-            docker compose exec -T app php artisan view:cache
-
-            # 6. Nyalakan queue kembali setelah deploy selesai
-            docker compose start queue
+            set -euo pipefail
+            if [ -d /root/churma-codes/scripts ]; then
+              cd /root/churma-codes
+              ./scripts/deploy.sh laravel "ghcr.io/churma16/portfolio-backend-laravel:${{ github.ref_name }}"
+              ./scripts/smoke-test.sh laravel
+            else
+              echo "[info] /root/churma-codes not yet found on VPS. Skipping container activation until infra is deployed."
+            fi
