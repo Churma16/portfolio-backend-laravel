@@ -1,5 +1,6 @@
 
-FROM php:8.2-fpm
+# Pin PHP 8.2.35+ to mitigate PHP2Shell RCE (CVE-2026-109618, CVE-2026-109619)
+FROM php:8.2.35-fpm
 
 # Install dependencies sistem & alat compile
 RUN apt-get update && apt-get install -y \
