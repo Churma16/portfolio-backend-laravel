@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class TagUpdateRequest extends FormRequest
 {
@@ -24,9 +25,9 @@ class TagUpdateRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:100'],
-             'slug' => ['required', 'string', 'max:100', 'unique:tags,slug'],
+            'slug' => ['required', 'string', 'max:100', Rule::unique('tags', 'slug')->ignore($this->route('tag'))],
             'color' => ['nullable', 'string', 'max:10'],
-            'category_id' => ['nullable', 'integer', 'exists:Categories,id'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
         ];
     }
 }
