@@ -32,11 +32,6 @@ class Category extends Model
         ];
     }
 
-    public function techStacks(): HasMany
-    {
-        return $this->hasMany(TechStack::class);
-    }
-
     public function tags(): HasMany
     {
         return $this->hasMany(Tag::class);

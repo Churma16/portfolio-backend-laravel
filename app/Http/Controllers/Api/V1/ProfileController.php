@@ -8,16 +8,15 @@ use App\Http\Resources\Api\V1\ProfileResource;
 use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends BaseController
 {
-    // Karena profil biasanya tunggal, kita cukup pakai satu key utama
     private const CACHE_KEY = 'site_profile';
 
     public function index(Request $request)
     {
-        // CACHE READ: Simpan selama 24 jam (86400 detik)
         $profile = Cache::remember(self::CACHE_KEY, 86400, function () {
             $data = Profile::first();
 
@@ -25,7 +24,7 @@ class ProfileController extends BaseController
         });
 
         if (!$profile) {
-            return $this->sendError("Profile not found.", [], 404);
+            return $this->sendError("Profile not found.", 404);
         }
 
         return $this->sendResponse($profile, "Profile retrieved successfully.");
@@ -33,7 +32,6 @@ class ProfileController extends BaseController
 
     public function show(Request $request, Profile $profile)
     {
-        // Tetap menggunakan resource untuk konsistensi jika show dipanggil dengan ID
         return new ProfileResource($profile);
     }
 
@@ -41,7 +39,6 @@ class ProfileController extends BaseController
     {
         $data = $request->validated();
 
-        // Decode JSON strings
         if ($request->has('socials') && isset($data['socials']) && is_string($data['socials'])) {
             $data['socials'] = json_decode($data['socials'], true);
         }
@@ -50,22 +47,29 @@ class ProfileController extends BaseController
             $data['hero_image_codes'] = json_decode($data['hero_image_codes'], true);
         }
 
-        // store avatar
+        $oldAvatar = null;
         if ($request->hasFile('avatar')) {
-            if ($profile->avatar) {
-                Storage::disk('public')->delete($profile->avatar);
-            }
+            $oldAvatar = $profile->avatar;
             $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
 
+        $oldCvFiles = null;
         if ($request->hasFile('cv_files')) {
-            if ($profile->cv_files) {
-                Storage::disk('public')->delete($profile->cv_files);
-            }
+            $oldCvFiles = $profile->cv_files;
             $data['cv_files'] = $request->file('cv_files')->store('cv_files', 'public');
         }
 
-        $profile->update($data);
+        DB::transaction(function () use ($profile, $data) {
+            $profile->update($data);
+        });
+
+        if ($oldAvatar && Storage::disk('public')->exists($oldAvatar)) {
+            Storage::disk('public')->delete($oldAvatar);
+        }
+
+        if ($oldCvFiles && Storage::disk('public')->exists($oldCvFiles)) {
+            Storage::disk('public')->delete($oldCvFiles);
+        }
 
         $this->clearCache(self::CACHE_KEY, '');
 
@@ -83,11 +87,20 @@ class ProfileController extends BaseController
 
     public function destroy(Request $request, Profile $profile)
     {
-        if ($profile->avatar) {
-            Storage::disk('public')->delete($profile->avatar);
+        $oldAvatar = $profile->avatar;
+        $oldCvFiles = $profile->cv_files;
+
+        DB::transaction(function () use ($profile) {
+            $profile->delete();
+        });
+
+        if ($oldAvatar && Storage::disk('public')->exists($oldAvatar)) {
+            Storage::disk('public')->delete($oldAvatar);
         }
 
-        $profile->delete();
+        if ($oldCvFiles && Storage::disk('public')->exists($oldCvFiles)) {
+            Storage::disk('public')->delete($oldCvFiles);
+        }
 
         $this->clearCache(self::CACHE_KEY, '');
 

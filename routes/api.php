@@ -29,6 +29,7 @@ Route::apiResource('tags', TagController::class)->only(['index', 'show']);
 Route::apiResource('work-experiences', WorkExperienceController::class)->only(['index', 'show']);
 Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
 Route::apiResource('tech-stack-categories', TechStackCategoryController::class)->only(['index', 'show']);
+Route::post('messages', [MessageController::class, 'store'])->middleware('throttle:6,1');
 
 // Admin write routes (create, store, update, delete)
 Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
@@ -42,7 +43,7 @@ Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
     Route::post('work-experiences/{work_experience}/reorder', [WorkExperienceController::class, 'reorder']);
     Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('tech-stack-categories', TechStackCategoryController::class)->only(['store', 'update', 'destroy']);
-    Route::apiResource('messages', MessageController::class)->only(['store', 'update', 'destroy']);
+    Route::apiResource('messages', MessageController::class)->only(['index', 'show', 'update', 'destroy']);
     Route::post('/generate-guest-token', [AuthController::class, 'generateGuestToken']);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
