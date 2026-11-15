@@ -86,7 +86,7 @@ class WorkExperienceController extends BaseController
     public function reorder(Request $request, WorkExperience $workExperience)
     {
         if (!$request->has('direction')) {
-            return $this->sendError("Direction is required.", [], 400);
+            return $this->sendError("Direction is required.", 400);
         }
 
         $isUpdated = false;

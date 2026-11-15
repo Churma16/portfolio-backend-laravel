@@ -132,7 +132,7 @@ class ProjectController extends BaseController
     public function reorder(Request $request, Project $project)
     {
         if (!$request->has('direction')) {
-            return $this->sendError("Direction is required.", [], Response::HTTP_BAD_REQUEST);
+            return $this->sendError("Direction is required.", Response::HTTP_BAD_REQUEST);
         }
 
         $isUpdated = false;
