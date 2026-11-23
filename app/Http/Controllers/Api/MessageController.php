@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\MessageStoreRequest;
 use App\Http\Requests\Api\MessageUpdateRequest;
-use App\Mail\ContactFormMail;
 use App\Models\Message;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -33,20 +33,27 @@ class MessageController extends Controller
     public function store(MessageStoreRequest $request)
     {
         if ($request->filled('gotcha')) {
-
             return response()->json([
                 'success' => true,
                 'message' => 'Pesan terkirim!'
             ], 200);
         }
+
         $details = $request->validated();
-        // Pastikan key validation sama dengan yang dipakai di blade
-        // (misal: 'name', 'email', 'content')
-
-        // GANTI DENGAN EMAIL PRIBADI ANDA
-        Mail::to('fathanmf16@gmail.com')->send(new ContactFormMail($details));
-
         $message = Message::create($details);
+
+        // Dispatch contact notification to portfolio-notifier microservice
+        try {
+            $notifierUrl = config('services.notifier.url', env('NOTIFIER_URL', 'http://portfolio-notifier:8080/api/notify'));
+            Http::timeout(5)->post($notifierUrl, [
+                'name'    => $details['name'],
+                'email'   => $details['email'],
+                'message' => $details['content'] ?? ($details['message'] ?? ''),
+                'source'  => 'laravel',
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch notification to portfolio-notifier: ' . $e->getMessage());
+        }
 
         return response()->json(['message' => 'Email sedang dikirim!']);
     }

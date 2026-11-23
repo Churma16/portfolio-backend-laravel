@@ -2,9 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Api\V1;
 
-use App\Mail\ContactFormMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -15,7 +14,9 @@ final class MessageControllerTest extends TestCase
     #[Test]
     public function public_visitors_can_submit_contact_messages(): void
     {
-        Mail::fake();
+        Http::fake([
+            '*' => Http::response(['success' => true], 200),
+        ]);
 
         $contactPayload = [
             'name' => 'Fathan Test',
@@ -31,20 +32,25 @@ final class MessageControllerTest extends TestCase
             'email' => 'visitor@example.com',
         ]);
 
-        Mail::assertQueued(ContactFormMail::class);
+        Http::assertSent(function ($request) {
+            return $request['name'] === 'Fathan Test' &&
+                   $request['email'] === 'visitor@example.com' &&
+                   $request['message'] === 'Hello from public contact form automated test.' &&
+                   $request['source'] === 'laravel';
+        });
     }
 
     #[Test]
     public function contact_message_submission_validates_required_fields(): void
     {
-        Mail::fake();
+        Http::fake();
 
         $response = $this->postJson('/api/messages', []);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name', 'email', 'content']);
 
-        Mail::assertNothingQueued();
+        Http::assertNothingSent();
     }
 
     #[Test]
