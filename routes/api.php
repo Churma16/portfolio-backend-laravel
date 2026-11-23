@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CacheController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\V1\CategoryController;
@@ -44,6 +45,7 @@ Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
     Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('tech-stack-categories', TechStackCategoryController::class)->only(['store', 'update', 'destroy']);
     Route::apiResource('messages', MessageController::class)->only(['index', 'show', 'update', 'destroy']);
+    Route::post('/cache/flush', [CacheController::class, 'flush']);
     Route::post('/generate-guest-token', [AuthController::class, 'generateGuestToken']);
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
