@@ -23,7 +23,9 @@ class ProjectController extends BaseController
 
     public function index(Request $request)
     {
-        $projects = Cache::remember(self::CACHE_KEY_ALL, 3600, function () use ($request) {
+        $cacheKey = $request->getQueryString() ? self::CACHE_KEY_ALL . ':' . md5($request->getQueryString()) : self::CACHE_KEY_ALL;
+
+        $projects = Cache::remember($cacheKey, 3600, function () use ($request) {
             $data = Project::orderBy('column_order')->get();
             $data = $this->loadRelationships($data, $request);
 
@@ -35,7 +37,7 @@ class ProjectController extends BaseController
 
     public function show(Request $request, Project $project)
     {
-        $cacheKey = self::CACHE_KEY_SINGLE . ':' . $project->id;
+        $cacheKey = self::CACHE_KEY_SINGLE . ':' . $project->id . ($request->getQueryString() ? ':' . md5($request->getQueryString()) : '');
 
         $projectData = Cache::remember($cacheKey, 3600, function () use ($project, $request) {
             $project = $this->loadRelationships($project, $request);

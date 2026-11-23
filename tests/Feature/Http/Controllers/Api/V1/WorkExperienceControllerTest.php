@@ -129,4 +129,31 @@ final class WorkExperienceControllerTest extends TestCase
 
         $this->assertModelMissing($workExperience);
     }
+
+    #[Test]
+    public function show_handles_null_end_date_for_current_experience(): void
+    {
+        $workExperience = WorkExperience::factory()->create([
+            'end_date' => null,
+            'is_current' => true,
+        ]);
+
+        $response = $this->get(route('work-experiences.show', $workExperience));
+
+        $response->assertOk();
+        $response->assertJsonPath('data.end_date', null);
+    }
+
+    #[Test]
+    public function index_handles_null_end_date_for_current_experience(): void
+    {
+        WorkExperience::factory()->create([
+            'end_date' => null,
+            'is_current' => true,
+        ]);
+
+        $response = $this->get(route('work-experiences.index'));
+
+        $response->assertOk();
+    }
 }

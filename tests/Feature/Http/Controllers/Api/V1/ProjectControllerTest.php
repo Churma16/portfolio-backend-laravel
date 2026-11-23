@@ -122,4 +122,36 @@ final class ProjectControllerTest extends TestCase
 
         $this->assertModelMissing($project);
     }
+
+    #[Test]
+    public function index_uses_distinct_cache_keys_for_different_query_strings(): void
+    {
+        Project::factory()->count(2)->create();
+
+        \Illuminate\Support\Facades\Cache::flush();
+
+        $this->get('/api/projects');
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::has('projects:list:all'));
+
+        $this->get('/api/projects?with=techStacks,tags');
+        $queryString = request()->getQueryString();
+        $expectedKey = 'projects:list:all:' . md5($queryString);
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::has($expectedKey));
+    }
+
+    #[Test]
+    public function show_uses_distinct_cache_keys_for_different_query_strings(): void
+    {
+        $project = Project::factory()->create();
+
+        \Illuminate\Support\Facades\Cache::flush();
+
+        $this->get('/api/projects/' . $project->id);
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::has('projects:single:' . $project->id));
+
+        $this->get('/api/projects/' . $project->id . '?with=techStacks');
+        $queryString = request()->getQueryString();
+        $expectedKey = 'projects:single:' . $project->id . ':' . md5($queryString);
+        $this->assertTrue(\Illuminate\Support\Facades\Cache::has($expectedKey));
+    }
 }
