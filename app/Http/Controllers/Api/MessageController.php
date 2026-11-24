@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\TelemetryMiddleware;
 use App\Http\Requests\Api\MessageStoreRequest;
 use App\Http\Requests\Api\MessageUpdateRequest;
 use App\Models\Message;
@@ -33,9 +34,16 @@ class MessageController extends Controller
     public function store(MessageStoreRequest $request)
     {
         if ($request->filled('gotcha')) {
+            TelemetryMiddleware::dispatch([
+                'type' => 'spam_blocked',
+                'metadata' => [
+                    'reason' => 'honeypot',
+                ],
+            ]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Pesan terkirim!'
+                'message' => 'Pesan terkirim!',
             ], 200);
         }
 
@@ -46,14 +54,18 @@ class MessageController extends Controller
         try {
             $notifierUrl = config('services.notifier.url', env('NOTIFIER_URL', 'http://portfolio-notifier:8080/api/notify'));
             Http::timeout(5)->post($notifierUrl, [
-                'name'    => $details['name'],
-                'email'   => $details['email'],
+                'name' => $details['name'],
+                'email' => $details['email'],
                 'message' => $details['content'] ?? ($details['message'] ?? ''),
-                'source'  => 'laravel',
+                'source' => 'laravel',
             ]);
         } catch (\Throwable $e) {
-            Log::warning('Failed to dispatch notification to portfolio-notifier: ' . $e->getMessage());
+            Log::warning('Failed to dispatch notification to portfolio-notifier: '.$e->getMessage());
         }
+
+        TelemetryMiddleware::dispatch([
+            'type' => 'contact_submit',
+        ]);
 
         return response()->json(['message' => 'Email sedang dikirim!']);
     }

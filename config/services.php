@@ -26,6 +26,10 @@ return [
         'url' => env('NOTIFIER_URL', 'http://portfolio-notifier:8080/api/notify'),
     ],
 
+    'monitor' => [
+        'url' => env('MONITOR_URL'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
